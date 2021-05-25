@@ -1,0 +1,127 @@
+{
+	"$schema": "https://raw.githubusercontent.com/martinring/tmlanguage/master/tmlanguage.json",
+	"name": "6502 Assembly (atasm)",
+	"scopeName": "source.atasm",
+	"fileTypes": [
+		"asm",
+		"m65",
+		"inc"
+	],
+	"patterns": [
+		{
+			"include": "#comments"
+		},
+		{
+			"include": "#constants"
+		},
+		{
+			"include": "#control"
+		},
+		{
+			"include": "#6502"
+		},
+		{
+			"include": "#macros"
+		},
+		{
+			"include": "#quotes"
+		},
+		{
+			"include": "#storage"
+		},
+		{
+			"include": "#operators"
+		}
+	],
+	"repository": {
+		"comments": {
+			"patterns": [
+				{
+					"match": ";.*",
+					"name": "comment.line.semicolon"
+				}
+			]
+		},
+		"constants": {
+			"patterns": [
+				{
+					"match": "(?i)(?<=,)\\s*[xy]\\b(?!.*\\.reg)",
+					"name": "constant.language.registers"
+				},
+				{
+					"match": "\\b[0-9]+\\b",
+					"name": "constant.numeric.decimal"
+				},
+				{
+					"match": "(?i)\\$\\b\\h+\\b",
+					"name": "constant.numeric.hexadecimal"
+				},
+				{
+					"match": "~\\b[0-1]+\\b",
+					"name": "constant.numeric.binary"
+				},
+				{
+					"match": "(?i)'[a-z]\\b",
+					"name": "constant.character"
+				}
+			]
+		},
+		"6502": {
+			"patterns": [
+				{
+					"match": "(?i)(\\s+|(?<=:))(adc|and|asl|bcc|bcs|beq|bit|bmi|bne|bpl|brk|bvc|bvs|clc|cld|cli|clv|cmp|cpx|cpy|dec|dex|dey|eor|inc|inx|iny|jmp|jsr|lda|ldx|ldy|lsr|nop|ora|pha|php|pla|plp|rol|ror|rti|rts|sbc|sec|sed|sei|sta|stx|sty|tax|tay|tsx|txa|txs|tya)(\\b)",
+					"name": "keyword.other.opcode.6502.legal"
+				},
+				{
+					"match": "(?i)(\\s+|(?<=:))(aso|rln|lse|rrd|sax|lax|dcp|isb|anc|alr|arr|ane|anx|sbx|las|sha|shs|shx|shy|npo|cim|dop|top)(\\b)",
+					"name": "keyword.other.opcode.6502.illegal"
+				}
+			]
+		},
+		"control": {
+			"patterns": [
+				{
+					"match": "(?i)((^|\\s+)\\.error)\\b",
+					"name": "keyword.control.error"
+				},
+				{
+					"match": "(?i)(\\.(align|if|else|endif|include|incbin|warn|opt|local|set|bank))\\b",
+					"name": "keyword.control.controlcommand"
+				}
+			]
+		},
+		"macros": {
+			"patterns": [
+				{
+					"match": "(?i)(^|\\s+)\\.(rept|endr|macro|endm)\\b",
+					"name": "entity.other.attribute-name.macro"
+				}
+			]
+		},
+		"quotes": {
+			"patterns": [
+				{
+					"begin": "\"",
+					"end": "\"",
+					"name": "string.quoted.double"
+				}
+			]
+		},
+		"storage": {
+			"patterns": [
+				{
+					"match": "(?i)(\\.((s|c|d)?byte|ds|dc|d?word|float))\\b",
+					"name": "storage.type"
+				}
+			]
+		},
+		"operators": {
+			"patterns": [
+				{
+					"match": "(?i)[+\\-\\*\\/!|^=&<>\\[\\]]|\\.(def|ref|banknum|not|and|or(?=\\s*\\())",
+					"name": "keyword.operators"
+				}
+			]
+		}
+	}
+}

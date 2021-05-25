@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+	<meta charset="UTF-8">
+	<meta http-equiv="Content-Security-Policy"
+		content="default-src 'none'; img-src vscode-resource: https:; script-src 'nonce-%NONCE%'; style-src 'nonce-%NONCE%';" />
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<link nonce="%NONCE%" rel="stylesheet" type="text/css" href="%STYLECSSURI%" />
+	<title>%APPDISPLAYNAME%</title>
+</head>
+
+<body>
+	<div class="welcomePageInstance">
+		<div class="welcomePageContainer">
+			<div class="welcomePage">
+
+				<div class="title">
+					<h1 class="caption">%APPDISPLAYNAME%</h1>
+					<p class="subtitle detail">%APPDESCRIPTION%</p>
+					<p class="release">Release %APPVERSION%</p>
+				</div>
+
+				<div class="row">
+					<div class="splash">
+						<div class="section start">
+							<h2 class="caption">Start</h2>
+							<ul>
+								<li><a href="#" title="Open new empty file" id="command" data-command="openNewFile">New
+										file</a></li>
+								<li><a href="#" title="Open a folder containing your code" id="command"
+										data-command="openFolder">Open folder...</a></li>
+							</ul>
+						</div>
+						<div class="section help">
+							<h2 class="caption">Help</h2>
+							<ul>
+								<!-- <li>%APPDISPLAYNAME% <a href="#" title="Open" id="command" data-command="openDiscussionPage">discussion</a> @ AtariAge</li> -->
+								<li>Found a bug? <a href="#" title="Open" id="command"
+										data-command="openGitHubIssue">Raise an issue on GitHub</a></li>
+							</ul>
+						</div>
+
+					</div>
+
+					<div class="commands">
+						<div class="section features">
+							<h2 class="caption">Features</h2>
+							<div class="list">
+								<div class="item">
+									<p>Use ATasm, the 6502 Mac/65 compatible cross-assembler, to build your Atari
+										assembler projects on your PC and run them in the Altirra emulator.</p>
+									<p>This VSCode extension comes with the latest version of ATasm as found
+										<a href="#" title="Open" id="command" data-command="openGitHubAtasm">here on
+											GitHub</a>.
+									</p>
+									<p>You will need to <a href="#" title="Open" id="command"
+											data-command="openDownloadAltirra">install the Altirra emulator</a> on your
+										machine and
+										<a href="#" title="Open" id="command" data-command="setupAltirraPath">setup the
+											path to it.</a>
+									</p>
+								</div>
+							</div>
+						</div>
+						<div class="section blog">
+							<h2 class="caption">Blogs and other introductions</h2>
+							<div class="list">
+								<div class="item">
+									<button role="group">
+										<h3 class="caption">Retro Coding Blog</h3>
+										<span class="detail">Follow along as a coder relooks at 6502 assembler after 35+
+											years:
+											<a href="#" title="Open" id="command"
+												data-command="openRetroCodingBlog">Retro Coding</a>
+										</span>
+									</button>
+								</div>
+							</div>
+						</div>
+
+						<div class="section learn">
+							<h2 class="caption">Learn</h2>
+							<div class="list">
+								<div class="item">
+									<button role="group">
+										<h3 class="caption">Display List Interrupts</h3>
+										<span class="detail">
+											<a href="#" title="Open" id="command" data-command="openDLITutorial">Atari
+												8-bit Display List Interrupts: A Complete(ish) Tutorial</a>
+										</span>
+									</button>
+								</div>
+								<div class="item">
+									<button role="group">
+										<h3 class="caption">Fine Scrolling</h3>
+										<span class="detail">
+											<a href="#" title="Open" id="command" data-command="openFineScrollingTutorial">Atari 8-bit Fine Scrolling: A Complete(ish) Tutorial</a>
+										</span>
+									</button>
+								</div>
+								<div class="item">
+									<button role="group" id="command" data-command="openEasy6502">
+										<h3 class="caption">6502 introduction</h3>
+										<span class="detail"><a href="#">Easy 6502 Tutorial</a></span>
+									</button>
+								</div>
+								<div class="item">
+									<button role="group">
+										<h3 class="caption">Essential Books:</h3>
+										<span class="detail">
+											<a href="#" title="Open" id="command" data-command="openMappingTheAtari">Mapping the Atari</a>
+											<a href="#" title="Open" id="command" data-command="openDeReAtari">De-Re-Atari</a>
+										</span>
+									</button>
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<script nonce="%NONCE%" src="%SCRIPTJSURI%"></script>
+</body>
+
+</html>
