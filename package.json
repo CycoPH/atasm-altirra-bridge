@@ -3,7 +3,7 @@
 	"displayName": "Atasm Altirra Bridge",
 	"shortName": "Atasm",
 	"description": "Build and debug your 6502 asssembler projects with Atasm and Altirra",
-	"version": "1.0.0",
+	"version": "1.1.0",
 	"icon": "images/icon.png",
 	"author": "Peter Hinz",
 	"publisher": "cerebus",
@@ -108,7 +108,7 @@
 					"type": "string",
 					"default": "",
 					"markdownDescription": "Specify the full path (including filename) of your [Altirra Installation](http://www.virtualdub.org/altirra.html)",
-					"scope": "machine"
+					"scope": "resource"
 				},
 				"atasm-altirra-bridge.emulator.altirra.region": {
 					"type": "string",
@@ -255,7 +255,7 @@
 		"test": "node ./out/test/runTest.js",
 		"clean": "rimraf out/",
 		"copy-files": "copyfiles -u 2 src/public/**/*.html src/public/**/*.css src/public/**/*.js out/",
-		"copy-files2": "copyfiles languages/** syntaxes/** bin/** out/",
+		"copy-files2": "copyfiles languages/** syntaxes/** out/",
 		"final": "npm run clean && npm run compile && npm run copy-files && npm run copy-files2"
 	},
 	"dependencies": {

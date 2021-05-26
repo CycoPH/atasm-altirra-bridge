@@ -138,6 +138,8 @@ export class EmulatorRunner implements vscode.Disposable {
 			application.ShowWarningPopup(message);
 			return false;
 		}
+		this.FullPathToAltirra = altirraPath;
+
 		// Validate (user provided)
 		let result = await filesystem.FileExistsAsync(altirraPath);
 		if (!result) {
@@ -148,11 +150,8 @@ export class EmulatorRunner implements vscode.Disposable {
 			application.WriteToCompilerTerminal("");
 			application.ShowWarningPopup(message);
 		}
-		else {
-			// Set
-			this.FullPathToAltirra = altirraPath;
-		}
-		// Emulator (Other)
+		
+		// Emulator
 		this.Args = this.Configuration.get<string>("emulator.altirra.args", "");
 
 		this.AutoCloseAltirra = this.Configuration.get<boolean>("emulator.altirra.autoCloseRunningAltirra", true);

@@ -28,7 +28,12 @@ export class AssemblerRunner implements vscode.Disposable {
 	public OutputDebugCmds: string = "";				// Altirra debug commands to set breakpoints
 
 	constructor() {
-		this.DefaultAtasmBin = path.join(application.Path, "out", "bin", "atasm");
+		if (application.IsWindows) {
+			this.DefaultAtasmBin = path.join(application.Path, "bin", application.OSPlatform, "atasm.exe");
+		}
+		else {
+			this.DefaultAtasmBin = path.join(application.Path, "bin", application.OSPlatform, application.OSArch, "atasm");
+		}
 	}
 
 	public dispose(): void {

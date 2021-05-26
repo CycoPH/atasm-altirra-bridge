@@ -4,6 +4,10 @@ All notable changes to the "atasm-altirra-bridge" extension will be documented i
 
 ## [Unreleased]
 
+## [1.1.0] - 2021-05-26
+- Added ATasm 64bit binary and made extension detect the platform and architecture
+- Setting the Altirra path under Linux is now easier
+
 ## [1.0.0] - 2021-05-25
 ### Initial Release
 - Basic functionality to assemble, run and debug 6502 assembler using ATasm and Altirra
