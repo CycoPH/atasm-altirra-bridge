@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/naming-convention */
 "use strict";
 import * as vscode from 'vscode';
 import * as application from './application';
@@ -42,6 +43,27 @@ export function KillSpawnProcess(): void {
 	KillProcessById(cp?._process?.id);
 }
 
+export function JustRun(command: string, args: string[] | null, cwd: string): Promise<boolean> {
+	return new Promise((resolve, reject) => {
+		// prepare
+		let receivedError = false;
+
+		let ca = cp.spawn(command, args, {
+			cwd: cwd,
+			detached: true,
+			stdio: 'ignore'
+		});
+
+		ca.on('error', (err: any) => {
+			return resolve(false);
+		});
+
+		ca.on("close", (e: any) => {
+			return resolve(true);
+		});
+	});
+}
+
 export function Spawn(command: string, args: string[] | null, env: { [key: string]: string | null } | null, cwd: string, stdout: any, stderr: any): Promise<boolean> {
 
 	// Process
@@ -49,7 +71,6 @@ export function Spawn(command: string, args: string[] | null, env: { [key: strin
 		// prepare
 		let receivedError = false;
 
-		// Spawn compiler
 		let ca = cp.spawn(command, args, {
 			shell: true,
 			env: env,

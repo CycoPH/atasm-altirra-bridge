@@ -148,7 +148,10 @@ export async function BuildGameAndRunAsync(fileUri: vscode.Uri): Promise<boolean
 }
 
 export async function BuildAndDebugAsync(fileUri: vscode.Uri): Promise<boolean> {
+	// VERY NB: breakpoints is an async filled array.  We need to access it
+	// once here let other async processes run and then it will be available later
 	let breakpoints = vscode.debug.breakpoints;
+
 	if (!await BuildGameAsync(fileUri)) {
 		return false;
 	}
@@ -161,6 +164,10 @@ export async function BuildAndDebugAsync(fileUri: vscode.Uri): Promise<boolean> 
 
 	// Result
 	return true;
+}
+
+export async function ResetBuildAsync() {
+	Assembler.ResetBuild();
 }
 
 /**
@@ -269,7 +276,7 @@ export async function CreateAtasmBuildJsonAsync(): Promise<boolean> {
 				"_2", "Array of folders that will be searched when files are .include(d)",
 				"includes", "[]",
 				"\n",
-				"_3", "Which folder will all the output files be written to. 'out' by default",
+				"_3", "Which folder will all the output files be written to. 'out' by default. Always in the workspace!",
 				"outputFolder", "out",
 				"\n",
 				"_4", "Additional atasm parameters:-v -s -u -r -fvalue",
@@ -402,6 +409,6 @@ export async function SaveFilesAndContinueAsync(fileUri: vscode.Uri | undefined)
 	return result;
 }
 
-export async function getAssemblerCommandLine(filename: string | undefined): Promise<string> {
-	return await Assembler.GetAssemblerCommandLine(filename);
+export async function getAssemblerCommandLine4Task(filename: string | undefined): Promise<string> {
+	return await Assembler.GetAssemblerCommandLine4Task(filename);
 }

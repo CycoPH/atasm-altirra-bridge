@@ -43,7 +43,10 @@ export async function activate(context: vscode.ExtensionContext) {
 	const createAtasmBuildJson = vscode.commands.registerCommand('extension.createAtasmBuildJson', async () => {
 		await application.CreateAtasmBuildJsonAsync();
 	});
-
+	// Reset the build process
+	const resetBuild = vscode.commands.registerCommand('extension.resetBuild', async () => {
+		await application.ResetBuildAsync();
+	});
 	// Hook up the folder for config file checking
 	const folder = vscode.workspace.workspaceFolders?.[0];
 	if (folder) {
@@ -72,6 +75,7 @@ export async function activate(context: vscode.ExtensionContext) {
 	context.subscriptions.push(buildGame);
 	context.subscriptions.push(buildGameAndRun);
 	context.subscriptions.push(buildAndDebug);
+	context.subscriptions.push(resetBuild);
 
 	// Register intellisence features
 	//await application.RegisterDocumentSymbolProvidersAsync(context);
@@ -97,7 +101,7 @@ async function getAssemblerTasks(): Promise<vscode.Task[]> {
 
 	let editor = vscode.window.activeTextEditor;
 
-	if (editor && editor.document && editor.document.fileName && editor.document.languageId === "atasm") {
+	if (editor && editor.document && editor.document.fileName && (editor.document.languageId === "atasm" || editor.document.languageId === "json" )) {
 		let input: string = editor.document.fileName;
 
 		const folder = vscode.workspace.workspaceFolders?.[0].uri.fsPath;
@@ -110,7 +114,7 @@ async function getAssemblerTasks(): Promise<vscode.Task[]> {
 
 				// If there in a input file set then register a task to build the input file.
 				if (buildConfig?.input && buildConfig?.input.trim().length > 0) {
-					let commandLine = await application.getAssemblerCommandLine(undefined);
+					let commandLine = await application.getAssemblerCommandLine4Task(undefined);
 					if (commandLine.length) {
 						let buildTaskDef: AssemblerTaskDefinition = { type: "atasm", task: "From JSON" };
 						let buildTask = new vscode.Task(buildTaskDef, vscode.TaskScope.Workspace, "Assemble from atasm-build settings", "atasm",
@@ -125,18 +129,19 @@ async function getAssemblerTasks(): Promise<vscode.Task[]> {
 			catch (err) {
 				// There was a problem loading the atasb-build.json file.
 			}
-
 		}
 
-		let commandLine = await application.getAssemblerCommandLine(input);
-		if (commandLine.length) {
-			let buildTaskDef: AssemblerTaskDefinition = { type: "atasm", task: "Direct" };
-			let buildTask = new vscode.Task(buildTaskDef, vscode.TaskScope.Workspace, "Assemble the current file only", "atasm",
-				new vscode.ShellExecution(commandLine),
-				["$atasm"]);
-			buildTask.group = vscode.TaskGroup.Build;
+		if (editor.document.languageId === "atasm") {
+			let commandLine = await application.getAssemblerCommandLine4Task(input);
+			if (commandLine.length) {
+				let buildTaskDef: AssemblerTaskDefinition = { type: "atasm", task: "Direct" };
+				let buildTask = new vscode.Task(buildTaskDef, vscode.TaskScope.Workspace, "Assemble the current file only", "atasm",
+					new vscode.ShellExecution(commandLine),
+					["$atasm"]);
+				buildTask.group = vscode.TaskGroup.Build;
 
-			tasks.push(buildTask);
+				tasks.push(buildTask);
+			}
 		}
 	}
 

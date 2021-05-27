@@ -11,15 +11,15 @@ export class AssemblerRunner implements vscode.Disposable {
 	public IsRunning: boolean = false;
 
 	protected Configuration: vscode.WorkspaceConfiguration | undefined;
-	public readonly DefaultAtasmBin: string;			// Where can the shipped atasm.exe be found?
+	public DefaultAtasmBin: string = "";				// Where can the shipped atasm be found?
 	public BuildConfig: application.AtasmConfigurationDefinition | undefined = undefined;
 	public WorkspaceFolder: string = "";
 
 	private AtasmPath: string = "atasm";
 
 	// These are items the emulator is interested in
-	public FileName: string = "";						// The file being compiled (the input)
-	public FileNameBase: string = "";					// Just the name part of the input, without the extension
+	public InputFileName: string = "";					// The file being compiled (the input)
+	public InputFileNameBase: string = "";				// Just the name part of the input, without the extension
 	public OutputFolder: string = "";					// Where will all the output go
 	public OutputFileName: string = "";					// The path and name of the assembled file
 	public OutputSymbolsFileName: string = "";
@@ -28,12 +28,7 @@ export class AssemblerRunner implements vscode.Disposable {
 	public OutputDebugCmds: string = "";				// Altirra debug commands to set breakpoints
 
 	constructor() {
-		if (application.IsWindows) {
-			this.DefaultAtasmBin = path.join(application.Path, "bin", application.OSPlatform, "atasm.exe");
-		}
-		else {
-			this.DefaultAtasmBin = path.join(application.Path, "bin", application.OSPlatform, application.OSArch, "atasm");
-		}
+		this.InitOriginalPath();
 	}
 
 	public dispose(): void {
@@ -46,10 +41,23 @@ export class AssemblerRunner implements vscode.Disposable {
 		if (!result) { return false; }
 
 		// Execute
-		return await this.ExecuteCompilerAsync();
+		return await this.ExecuteAssemblerAsync();
 	}
 
-	public async GetAssemblerCommandLine(thisAsmFile: string | undefined): Promise<string> {
+	public ResetBuild(): void {
+		this.IsRunning = false;
+	}
+
+	// ==================================================================================
+	// Functions to create the assembler command line when doing stuff via a task
+	// ==================================================================================
+
+	/**
+	 * Build the command to execute in a VSCode Task<>
+	 * @param thisAsmFile Assembler file to compile
+	 * @returns string to execute in the VSCode task
+	 */
+	public async GetAssemblerCommandLine4Task(thisAsmFile: string | undefined): Promise<string> {
 		this.InitGetAssemberCommandLineGetter();
 
 		let args: string[] = thisAsmFile ? await this.GetAssemblerCommandLineDirectly(thisAsmFile) : await this.GetAssemblerCommandLineFromBuildInfo();
@@ -68,6 +76,14 @@ export class AssemblerRunner implements vscode.Disposable {
 		return "";
 	}
 
+	// ----------------------------------------------------------------------------------
+	// Internal code
+	// ----------------------------------------------------------------------------------
+	
+	/**
+	 * Build assembler command line from atasm-build.json configuration
+	 * @returns array of command line arguments. [0] is the assembler [1..] are the parameters
+	 */
 	private async GetAssemblerCommandLineFromBuildInfo(): Promise<string[]> {
 		let args: string[] = [];
 
@@ -76,18 +92,22 @@ export class AssemblerRunner implements vscode.Disposable {
 		this.BuildConfig = application.GetBuildConfig();
 		if (!this.BuildConfig) { return args; }
 
-		this.FileName = this.BuildConfig.input ? this.BuildConfig.input : "theapp.asm";
-		this.FileNameBase = path.parse(this.FileName).name;
+		// Get the filename where the compiling starts.
+		// If its undefined or blank then use the default
+		this.InputFileName = (this.BuildConfig.input && this.BuildConfig.input.trim().length > 0)  ? this.BuildConfig.input : "theapp.asm";
+		this.InputFileNameBase = path.parse(this.InputFileName).name;
 
-		let outputFolder = "out";
-		if (this.BuildConfig.outputFolder) { outputFolder = this.BuildConfig.outputFolder; }
-		this.OutputFolder = path.join("", outputFolder);
+		// Set where the assembler output goes or default to "out"
+		this.OutputFolder = path.join("",
+			(this.BuildConfig.outputFolder && this.BuildConfig.outputFolder.trim().length > 0) ? this.BuildConfig.outputFolder : "out"
+		);
 
-		this.OutputFileName = `"${path.join(this.OutputFolder, this.FileNameBase + ".xex")}"`;
-		this.OutputSymbolsFileName = `"${path.join(this.OutputFolder, this.FileNameBase + ".lab")}"`;
-		this.OutputListFileName = `"${path.join(this.OutputFolder, this.FileNameBase + ".lst")}"`;
-		this.OutputBreakpoints = path.join(this.OutputFolder, this.FileNameBase + ".brk");
-		this.OutputDebugCmds = path.join(this.OutputFolder, this.FileNameBase + ".atdbg");
+		// Create the filenames of all the outputs
+		this.OutputFileName = `"${path.join(this.OutputFolder, this.InputFileNameBase + ".xex")}"`;
+		this.OutputSymbolsFileName = `"${path.join(this.OutputFolder, this.InputFileNameBase + ".lab")}"`;
+		this.OutputListFileName = `"${path.join(this.OutputFolder, this.InputFileNameBase + ".lst")}"`;
+		this.OutputBreakpoints = path.join(this.OutputFolder, this.InputFileNameBase + ".brk");
+		this.OutputDebugCmds = path.join(this.OutputFolder, this.InputFileNameBase + ".atdbg");
 
 		// Build the command line
 		args.push(this.AtasmPath);
@@ -103,29 +123,34 @@ export class AssemblerRunner implements vscode.Disposable {
 		if (this.BuildConfig?.symbols && this.BuildConfig?.symbols.length > 0) {
 			this.BuildConfig.symbols.map(x => args.push(`-d${x}`));
 		}
+
 		// Debug output
 		if (this.BuildConfig?.withDebug) {
 			args.push(`-l${this.OutputSymbolsFileName}`);
 			args.push(`-g${this.OutputListFileName}`);
 		}
 
-		args.push(`"${this.FileName}"`);
+		args.push(`"${this.InputFileName}"`);
 
 		return args;
 	}
 
+	/**
+	 * Build assembler command line from defaults and the input asm file
+	 * @param thisAsmFile Name of the file to assemble
+	 * @returns array of command line arguments. [0] is the assembler [1..] are the parameters
+	 */
 	private async GetAssemblerCommandLineDirectly(thisAsmFile: string): Promise<string[]> {
-		this.FileName = thisAsmFile.length > 0 ? thisAsmFile : "theapp.asm";
-		this.FileNameBase = path.parse(this.FileName).name;
+		this.InputFileName = thisAsmFile.length > 0 ? thisAsmFile : "theapp.asm";
+		this.InputFileNameBase = path.parse(this.InputFileName).name;
 
-		let outputFolder = "out";
-		this.OutputFolder = path.join("", outputFolder);
+		this.OutputFolder = path.join("", "out");
 
-		this.OutputFileName = `"${path.join(this.OutputFolder, this.FileNameBase + ".xex")}"`;
-		this.OutputSymbolsFileName = `"${path.join(this.OutputFolder, this.FileNameBase + ".lab")}"`;
-		this.OutputListFileName = `"${path.join(this.OutputFolder, this.FileNameBase + ".lst")}"`;
-		this.OutputBreakpoints = path.join(this.OutputFolder, this.FileNameBase + ".brk");
-		this.OutputDebugCmds = path.join(this.OutputFolder, this.FileNameBase + ".atdbg");
+		this.OutputFileName = `"${path.join(this.OutputFolder, this.InputFileNameBase + ".xex")}"`;
+		this.OutputSymbolsFileName = `"${path.join(this.OutputFolder, this.InputFileNameBase + ".lab")}"`;
+		this.OutputListFileName = `"${path.join(this.OutputFolder, this.InputFileNameBase + ".lst")}"`;
+		this.OutputBreakpoints = path.join(this.OutputFolder, this.InputFileNameBase + ".brk");
+		this.OutputDebugCmds = path.join(this.OutputFolder, this.InputFileNameBase + ".atdbg");
 
 		// Build the command line
 		let args: string[] = [];
@@ -134,20 +159,21 @@ export class AssemblerRunner implements vscode.Disposable {
 		// Output
 		args.push(`-o${this.OutputFileName}`);
 
-		args.push(`"${this.FileName}"`);
+		args.push(`"${this.InputFileName}"`);
 
 		return args;
 	}
 
+	/**
+	 * Make sure that there is some AtasmPath configuration
+	 */
 	private InitGetAssemberCommandLineGetter() {
+		this.InitOriginalPath();
 		this.Configuration = application.GetConfiguration();
 		this.WorkspaceFolder = this.GetWorkspaceFolder();
-		this.SetupBasicAtasmPath();
-	}
 
-	private SetupBasicAtasmPath(): void {
 		if (this.Configuration) {
-			let newAtasmPath = this.Configuration.get<string>(`assembler.atasmPath`);
+			let newAtasmPath = this.Configuration.get<string>(`assembler.atasmPath`, "").trim();
 			this.AtasmPath = newAtasmPath?.length ? newAtasmPath : this.DefaultAtasmBin;
 		}
 		else {
@@ -156,9 +182,7 @@ export class AssemblerRunner implements vscode.Disposable {
 	}
 
 	// ========================================================================
-	private async ExecuteCompilerAsync(): Promise<boolean> {
-		//console.log('debugger:Assembler.ExecuteCompilerAsync');
-
+	private async ExecuteAssemblerAsync(): Promise<boolean> {
 		let command = this.AtasmPath;
 
 		// Arguments
@@ -187,13 +211,14 @@ export class AssemblerRunner implements vscode.Disposable {
 			args.push(`-g${this.OutputListFileName}`);
 		}
 
-		args.push(`"${this.FileName}"`);
+		args.push(`"${this.InputFileName}"`);
 
 		// Environment
 		let env: { [key: string]: string | null } = {};
 
 		// Notify
 		application.CompilerOutputChannel.appendLine(`Starting build ...`);
+		application.CompilerOutputChannel.appendLine(command);
 		application.CompilerOutputChannel.appendLine(args.join(" "));
 
 		// Process
@@ -237,7 +262,9 @@ export class AssemblerRunner implements vscode.Disposable {
 		this.IsRunning = false;
 
 		// Finalise
-		if (executeResult) { executeResult = await this.VerifyCompiledFileSizeAsync(); }
+		if (executeResult) {
+			executeResult = await this.VerifyCompiledFileSizeAsync();
+		}
 
 		// Result
 		return executeResult;
@@ -248,52 +275,59 @@ export class AssemblerRunner implements vscode.Disposable {
 		// Prepare
 		let result = true;
 
+		// Reset the atasm path and recheck everything
+		this.InitOriginalPath();
+
 		// (Re)load
-		// It appears you need to reload this each time incase of change
+		// It appears you need to reload this each time in case of a change
 		this.Configuration = application.GetConfiguration();
 		this.WorkspaceFolder = this.GetWorkspaceFolder();
-
-		this.BuildConfig = application.GetBuildConfig();
-		if (!this.BuildConfig) { return false; }
-
-		let newAtasmPath = this.Configuration.get<string>(`assembler.atasmPath`);
-		this.AtasmPath = newAtasmPath?.length ? newAtasmPath : this.DefaultAtasmBin;
-
-		// Copy values out of the build config
-		this.AtasmPath = this.DefaultAtasmBin;
-
-		this.FileName = this.BuildConfig.input ? this.BuildConfig.input : "theapp.asm";
-		this.FileNameBase = path.parse(this.FileName).name;
-
-		let outputFolder = "out";
-		if (this.BuildConfig.outputFolder) { outputFolder = this.BuildConfig.outputFolder; }
-		this.OutputFolder = path.join("", outputFolder);
-
-		// Make sure the output folder exists
-		await this.MakeOutputFolder();
-
-		this.OutputFileName = path.join(this.OutputFolder, this.FileNameBase + ".xex");
-		this.OutputSymbolsFileName = path.join(this.OutputFolder, this.FileNameBase + ".lab");
-		this.OutputListFileName = path.join(this.OutputFolder, this.FileNameBase + ".lst");
-		this.OutputBreakpoints = path.join(this.WorkspaceFolder, this.OutputFolder, this.FileNameBase + ".brk");
-		this.OutputDebugCmds = path.join(this.WorkspaceFolder, this.OutputFolder, this.FileNameBase + ".atdbg");
 
 		// Clear output content?
 		// Note: need to do this here otherwise output from configuration is lost
 		if (this.Configuration.get<boolean>(`editor.clearPreviousOutput`)) {
 			application.CompilerOutputChannel.clear();
+		}	
+		
+		// Activate output window?
+		if (this.Configuration.get<boolean>(`editor.showAssemblerOutput`)) {
+			application.CompilerOutputChannel.show();
 		}
+
+		// Possibly set the ATasm path from the VSCode configuration
+		let newAtasmPath = this.Configuration.get<string>(`assembler.atasmPath`, "").trim();
+		this.AtasmPath = newAtasmPath?.length ? newAtasmPath : this.DefaultAtasmBin;
+
+		this.BuildConfig = application.GetBuildConfig();
+		if (!this.BuildConfig) { return false; }
+
+		// Get the filename where the compiling starts.
+		// If its undefined or blank then use the default
+		this.InputFileName = (this.BuildConfig.input && this.BuildConfig.input.trim().length > 0)  ? this.BuildConfig.input : "theapp.asm";
+		this.InputFileNameBase = path.parse(this.InputFileName).name;
+
+		// Set where the assembler output goes or default to "out"
+		this.OutputFolder = path.join("",
+			(this.BuildConfig.outputFolder && this.BuildConfig.outputFolder.trim().length > 0) ? this.BuildConfig.outputFolder : "out"
+		);
+		// Make sure the output folder exists
+		if (!await this.MakeOutputFolder()) {
+			application.WriteToCompilerTerminal(`Unable to create the output folder: ${this.OutputFolder}. This is always under the your workspace!`);
+			return false;
+		}
+
+		// Create the filenames of all the outputs
+		this.OutputFileName = path.join(this.OutputFolder, this.InputFileNameBase + ".xex");
+		this.OutputSymbolsFileName = path.join(this.OutputFolder, this.InputFileNameBase + ".lab");
+		this.OutputListFileName = path.join(this.OutputFolder, this.InputFileNameBase + ".lst");
+		this.OutputBreakpoints = path.join(this.WorkspaceFolder, this.OutputFolder, this.InputFileNameBase + ".brk");
+		this.OutputDebugCmds = path.join(this.WorkspaceFolder, this.OutputFolder, this.InputFileNameBase + ".atdbg");
 
 		// Already running?
 		if (this.IsRunning) {
 			// Notify
-			application.WriteToCompilerTerminal(`The assembler is already running! If you need to cancel the process use the 'atasm: Kill build process' option from the Command Palette.`);
+			application.WriteToCompilerTerminal(`The assembler is already running! If you need to cancel the process use the 'atasm: Reset build process' option from the Command Palette.`);
 			return false;
-		}
-
-		// Activate output window?
-		if (this.Configuration.get<boolean>(`editor.showAssemblerOutput`)) {
-			application.CompilerOutputChannel.show();
 		}
 
 		// Remove old debugger files before build
@@ -330,11 +364,13 @@ export class AssemblerRunner implements vscode.Disposable {
 		return "";
 	}
 
+	/**
+	 * 
+	 * @returns boolean true if the files were found and non-zero lenght, false otherwise
+	 */
 	private async VerifyCompiledFileSizeAsync(): Promise<boolean> {
-		//console.log('debugger:CompilerBase.VerifyCompiledFileSize');
-
 		// Verify created file(s)
-		application.WriteToCompilerTerminal(`Verifying compiled file(s)...`);
+		application.WriteToCompilerTerminal(`Verifying assembler output...`);
 
 		let files = [this.OutputFileName];
 		if (this.BuildConfig?.withDebug) {
@@ -342,21 +378,41 @@ export class AssemblerRunner implements vscode.Disposable {
 			files.push(this.OutputListFileName);
 		}
 
+		let badFiles:string[] = [];
+		let okFiles:string[] = [];
+
+		let hasMissingFiles = false;
 		for await (let fileToCheck of files) {
 			// Validate
 			let fileStats = await filesystem.GetFileStatsAsync(path.join(this.WorkspaceFolder, fileToCheck));
-			if (fileStats && fileStats.size > 0) { continue; }
+			if (fileStats && fileStats.size > 0) {
+				okFiles.push(fileToCheck);
+				continue;
+			}
+			if (fileStats) {
+				// Empty output?
+				application.WriteToCompilerTerminal(`WARNING: Assembler output is empty: '${fileToCheck}'`);
+			}
+			else {
+				// Failed
+				application.WriteToCompilerTerminal(`ERROR: Failed to create file: '${fileToCheck}'`);
+			}
+			badFiles.push(fileToCheck);
 
-			// Failed
-			application.WriteToCompilerTerminal(`ERROR: Failed to create compiled file '${fileToCheck}'.`);
-			return false;
+			hasMissingFiles = true;
 		}
-		application.WriteToCompilerTerminal(`Generated files:[${files.join(", ")}] are ok`);
+		if (okFiles.length) {
+			application.WriteToCompilerTerminal(`Generated files:[${okFiles.join(", ")}] are ok`);
+		}
 
 		// Result
 		return true;
 	}
 
+	/**
+	 * Make sure that the designated output folder is created
+	 * @returns boolean - true if the folder is there, false otherwise
+	 */
 	private async MakeOutputFolder(): Promise<boolean> {
 
 		let folder = path.join(this.WorkspaceFolder, this.OutputFolder);
@@ -366,5 +422,15 @@ export class AssemblerRunner implements vscode.Disposable {
 		}
 
 		return true;
+	}
+
+	private InitOriginalPath() {
+		if (application.IsWindows) {
+			// ATasm.exe is 32-bits so ignore the architecture
+			this.DefaultAtasmBin = path.join(application.Path, "bin", application.OSPlatform, "atasm.exe");
+		}
+		else {
+			this.DefaultAtasmBin = path.join(application.Path, "bin", application.OSPlatform, application.OSArch, "atasm");
+		}		
 	}
 }

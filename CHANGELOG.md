@@ -3,6 +3,15 @@
 All notable changes to the "atasm-altirra-bridge" extension will be documented in this file.
 
 ## [Unreleased]
+- MacOS support
+
+## [1.2.0] - 2021-05-27
+- Better integration of the ATasm assembler
+- Fixed a bug that reset the path to be always the Windows path of the atasm
+- Build Task now also works when 'atasm-build.json' is the currently open file
+- Added configuration options to allow for another emulator to be used
+  - Set the ownEmulator setting and supply the path and arguments
+  - The extension will not add any parameters. You will need to supply them in the correct format.
 
 ## [1.1.0] - 2021-05-26
 - Added ATasm 64bit binary and made extension detect the platform and architecture

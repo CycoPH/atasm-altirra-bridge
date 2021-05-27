@@ -3,7 +3,7 @@
 	"displayName": "Atasm Altirra Bridge",
 	"shortName": "Atasm",
 	"description": "Build and debug your 6502 asssembler projects with Atasm and Altirra",
-	"version": "1.1.0",
+	"version": "1.2.0",
 	"icon": "images/icon.png",
 	"author": "Peter Hinz",
 	"publisher": "cerebus",
@@ -33,7 +33,8 @@
 		"onCommand:extension.buildGame",
 		"onCommand:extension.buildGameAndRun",
 		"onCommand:extension.buildAndDebug",
-		"onCommand:extension.createAtasmBuildJson"
+		"onCommand:extension.createAtasmBuildJson",
+		"onCommand:extension.resetBuild"
 	],
 	"main": "./out/extension.js",
 	"contributes": {
@@ -92,6 +93,26 @@
 					"description": "Show information and feature short-cuts on the Status Bar (requires restart).",
 					"scope": "resource"
 				},
+
+				"atasm-altirra-bridge.emulator.ownEmulator": {
+					"type": "boolean",
+					"default": false,
+					"description": "Supply your own emulator path and command line settings (Ignore all Altirra settings)",
+					"scope": "resource"
+				},
+				"atasm-altirra-bridge.emulator.own.args": {
+					"type": "string",
+					"default": "",
+					"description": "Specify all command line arguments for your own emulator i.e. --v /run -debug",
+					"scope": "resource"
+				},
+				"atasm-altirra-bridge.emulator.own.path": {
+					"type": "string",
+					"default": "",
+					"markdownDescription": "Specify the full path to the emulator",
+					"scope": "resource"
+				},
+
 				"atasm-altirra-bridge.emulator.altirra.args": {
 					"type": "string",
 					"default": "",
@@ -210,23 +231,28 @@
 				"title": "Create Atasm-Build config file",
 				"icon": "$(gear)",
 				"category": "Atasm"
+			},
+			{
+				"command": "extension.resetBuild",
+				"title": "Reset build process",
+				"category": "Atasm"
 			}
 		],
 		"menus": {
 			"editor/title": [
 				{
 					"command": "extension.buildGame",
-					"when": "resourceLangId == atasm",
+					"when": "resourceLangId == atasm || resourceLangId == json",
 					"group": "1_run@10"
 				},
 				{
 					"command": "extension.buildGameAndRun",
-					"when": "resourceLangId == atasm",
+					"when": "resourceLangId == atasm || resourceLangId == json",
 					"group": "1_run@20"
 				},
 				{
 					"command": "extension.buildAndDebug",
-					"when": "resourceLangId == atasm",
+					"when": "resourceLangId == atasm || resourceLangId == json",
 					"group": "1_run@30"
 				}
 			]

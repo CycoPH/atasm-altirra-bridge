@@ -7,19 +7,18 @@ import * as filesystem from '../filesystem';
 import * as execute from '../execute';
 
 export class EmulatorRunner implements vscode.Disposable {
-	// Features
-	public IsRunning: boolean = false;
 
 	protected Configuration: vscode.WorkspaceConfiguration | undefined;
 
 	// Features
 	public readonly Name: string = "Altirra";
-	public FullPathToAltirra: string = "";
+	public FullPathToEmulator: string = "";
 	public Args: string = "";
 	public Region: string = "";
 	public Debugger: boolean = false;
-	public AutoCloseAltirra: boolean = false;
+	public AutoCloseEmulator: boolean = false;
 	protected FileName: string = "";
+	private UseAltirra: boolean = true;
 
 	// Lists (to match settings)
 	protected readonly RegionList: Map<string, string> = new Map([
@@ -53,13 +52,20 @@ export class EmulatorRunner implements vscode.Disposable {
 		return await this.ExecuteEmulatorAsync();
 	}
 
-	protected async ExecuteEmulatorAsync(): Promise<boolean> {
-
+	// ----------------------------------------------------------------------------------
+	// Internal code
+	// ----------------------------------------------------------------------------------
+	
+	private async ExecuteEmulatorAsync(): Promise<boolean> {
 		// Prepare
 		application.CompilerOutputChannel.appendLine('');
 
+		return (this.UseAltirra) ? (await this.RunAltirra() ) : ( await this.RunOwnEmulator() );
+	}
+
+	private async RunAltirra(): Promise<boolean> {
+
 		// Args
-		// Make sure we send nodebug where config is being saved
 		let args = [
 			this.Region,
 			`/run "${this.FileName}"`,
@@ -71,15 +77,17 @@ export class EmulatorRunner implements vscode.Disposable {
 		}
 
 		// Command
-		let command = `"${this.FullPathToAltirra}"`;
-		let exec = path.parse(this.FullPathToAltirra).base;
+		let command = `"${this.FullPathToEmulator}"`;
+		let exec = path.parse(this.FullPathToEmulator).base;
 
-		if (this.AutoCloseAltirra) {
-			await execute.KillProcessByNameAsync(exec, this.FullPathToAltirra);
+		if (this.AutoCloseEmulator) {
+			await execute.KillProcessByNameAsync(exec, this.FullPathToEmulator);
 		}
 
 		// Process
-		application.CompilerOutputChannel.appendLine(`Launching ${this.Name} emulator...`);
+		application.CompilerOutputChannel.appendLine(`Launching emulator...`);
+		application.CompilerOutputChannel.appendLine(command);
+		application.CompilerOutputChannel.appendLine(args.join(" "));
 
 		// Launch
 		let executeResult = await execute.Spawn(command, args, null, application.WorkspaceFolder,
@@ -104,29 +112,57 @@ export class EmulatorRunner implements vscode.Disposable {
 		return executeResult;
 	}
 
-	protected async InitialiseAsync(): Promise<boolean> {
-		// Configuration
-		let result = await this.LoadConfigurationAsync();
-		if (!result) { return false; }
+	private async RunOwnEmulator(): Promise<boolean> {
+		if (!this.Configuration) { return false; }
+
+		// Args
+		// Make sure we send nodebug where config is being saved
+		let args:string[] = [];
+
+		args.push(this.Configuration.get<string>("emulator.own.args", ""));
+
+		// Command
+		let command = this.Configuration.get<string>("emulator.own.path", "");
+		if (!command || command?.length === 0) {return false;}
+
+		// Process
+		application.CompilerOutputChannel.appendLine(`Launching emulator...`);
+		application.CompilerOutputChannel.appendLine(command);
+		application.CompilerOutputChannel.appendLine(args.join(" "));
+
+		// Launch
+		let executeResult = await execute.JustRun(command, args, application.WorkspaceFolder);
 
 		// Result
-		return true;
+		return executeResult;
 	}
 
-	protected async RepairFilePermissionsAsync(): Promise<boolean> {
-		return true;
-	}
 
-	protected async LoadConfigurationAsync(): Promise<boolean> {
-		// Reset
-		this.FullPathToAltirra = "altirra64.exe";
-		this.Args = "";
-		this.Region = "";
-		this.Debugger = false;
 
+	/**
+	 * Configure the path and parameters to the Altirra or own emulator
+	 * @returns true if the setup is ok
+	 */
+	protected async InitialiseAsync(): Promise<boolean> {
 		// (Re)load
 		// It appears you need to reload this each time in case of a change
 		this.Configuration = application.GetConfiguration();
+
+		let own = this.Configuration.get<boolean>("emulator.ownEmulator", false);
+
+		let result = own ? (await this.LoadOwnEmulatorConfigurationAsync() ) : (await this.LoadAltirraConfigurationAsync() );
+		return result;
+	}
+
+	protected async LoadAltirraConfigurationAsync(): Promise<boolean> {
+		if (!this.Configuration) { return false; }
+		
+		// Reset
+		this.FullPathToEmulator = "altirra64.exe";
+		this.Args = "";
+		this.Region = "";
+		this.Debugger = false;
+		this.UseAltirra = true;
 
 		// Emulator
 		let altirraPath = this.Configuration.get<string>("emulator.altirra.path");
@@ -138,7 +174,7 @@ export class EmulatorRunner implements vscode.Disposable {
 			application.ShowWarningPopup(message);
 			return false;
 		}
-		this.FullPathToAltirra = altirraPath;
+		this.FullPathToEmulator = altirraPath;
 
 		// Validate (user provided)
 		let result = await filesystem.FileExistsAsync(altirraPath);
@@ -154,7 +190,7 @@ export class EmulatorRunner implements vscode.Disposable {
 		// Emulator
 		this.Args = this.Configuration.get<string>("emulator.altirra.args", "");
 
-		this.AutoCloseAltirra = this.Configuration.get<boolean>("emulator.altirra.autoCloseRunningAltirra", true);
+		this.AutoCloseEmulator = this.Configuration.get<boolean>("emulator.altirra.autoCloseRunningAltirra", true);
 
 		let userRegion = this.Configuration!.get<string>("emulator.altirra.region", "");
 		if (userRegion) {
@@ -166,6 +202,48 @@ export class EmulatorRunner implements vscode.Disposable {
 				}
 			}
 		}
+
+		// Result
+		return true;
+	}
+
+
+	protected async LoadOwnEmulatorConfigurationAsync(): Promise<boolean> {
+		if (!this.Configuration) { return false; }
+		
+		// Reset
+		this.FullPathToEmulator = "";
+		this.Args = "";
+		this.Region = "";
+		this.Debugger = false;
+		this.UseAltirra = false;
+
+		// Emulator
+		let emulatorPath = this.Configuration.get<string>("emulator.own.path");
+		if (!emulatorPath || emulatorPath.trim().length === 0) {
+			vscode.commands.executeCommand('workbench.action.openSettings', application.Name + ".emulator.own.path");
+			let message = `WARNING: Please set the path to your own emulator installation!`;
+			application.WriteToCompilerTerminal(message);
+			application.WriteToCompilerTerminal("");
+			application.ShowWarningPopup(message);
+			return false;
+		}
+		this.FullPathToEmulator = emulatorPath;
+
+		// Validate (user provided)
+		let result = await filesystem.FileExistsAsync(emulatorPath);
+		if (!result) {
+			// Notify
+			let message = `WARNING: Your chosen emulator path '${emulatorPath}' cannot be found.\Please set the path in the settings...`;
+			vscode.commands.executeCommand('workbench.action.openSettings', application.Name + ".emulator.altirra.path");
+			application.WriteToCompilerTerminal(message);
+			application.WriteToCompilerTerminal("");
+			application.ShowWarningPopup(message);
+		}
+		
+		this.Args = this.Configuration.get<string>("emulator.own.args", "");
+
+		this.AutoCloseEmulator = false;
 
 		// Result
 		return true;
