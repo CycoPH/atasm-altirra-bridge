@@ -2,8 +2,12 @@
 
 All notable changes to the "atasm-altirra-bridge" extension will be documented in this file.
 
-## [Unreleased]
+## [1.3.0]
 - MacOS support
+- Added a MacOS x64 atasm executable
+
+## [1.2.1] - 2021-05-27
+- Fixed exec permission error on shipped version of ATasm
 
 ## [1.2.0] - 2021-05-27
 - Better integration of the ATasm assembler

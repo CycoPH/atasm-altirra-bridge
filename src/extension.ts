@@ -85,6 +85,9 @@ export async function activate(context: vscode.ExtensionContext) {
 
 	// Show welcome messages
 	await application.ShowStartupMessagesAsync();
+
+	// Fix Linux/MacOS exec permissions on shipped atasm
+	await application.Assembler.FixExecPermissions();
 }
 
 // this method is called when your extension is deactivated

@@ -27,6 +27,8 @@ export class AssemblerRunner implements vscode.Disposable {
 	public OutputBreakpoints: string = "";				// The file that set breakpoints will be written to
 	public OutputDebugCmds: string = "";				// Altirra debug commands to set breakpoints
 
+	private HaveDonePermissionCheck: boolean = false;
+
 	constructor() {
 		this.InitOriginalPath();
 	}
@@ -431,6 +433,12 @@ export class AssemblerRunner implements vscode.Disposable {
 		}
 		else {
 			this.DefaultAtasmBin = path.join(application.Path, "bin", application.OSPlatform, application.OSArch, "atasm");
-		}		
+		}
+	}
+
+	public async FixExecPermissions(): Promise<void> {
+		if (!application.IsWindows) {
+			await filesystem.ChModAsync(this.DefaultAtasmBin);
+		}
 	}
 }
