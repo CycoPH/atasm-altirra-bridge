@@ -147,6 +147,12 @@ This extension contributes the following settings:
 ## Known Issues
 
 ## Release Notes
+### 1.4.0
+- Atasm version bump to 1.12
+
+### 1.3.0
+- MacOS support
+- Added a MacOS x64 atasm executable
 
 ### 1.2.0
 - Better integration of the ATasm assembler
