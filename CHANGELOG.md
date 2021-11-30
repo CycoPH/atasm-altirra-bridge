@@ -2,6 +2,12 @@
 
 All notable changes to the "atasm-altirra-bridge" extension will be documented in this file.
 
+## [1.5.0]
+- Atasm version bump to 1.13
+- Atasm can now generate CC65 header and atasm include files from your project
+  - use -hc switch to generate a CC65 header file
+  - use -ha switch to generate an atasm include file
+
 ## [1.4.0]
 - Atasm version bump to 1.12
 
