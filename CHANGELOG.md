@@ -2,6 +2,15 @@
 
 All notable changes to the "atasm-altirra-bridge" extension will be documented in this file.
 
+## [1.6.0]
+- Atasm version bump to 1.17
+- Atasm can now dump constant, label and macro definition information
+  - use -hv to dump all the info
+  - use -hv[clm] c=constant l=labels m=macros to select a subset of info to dump
+- The 'asm-symbols.json' file in the root of the project can be viewed in vscode via
+  a new explorer window. Clicking on any of the constants, labels, macros or included
+  files will take you the the source code instantly.  
+
 ## [1.5.0]
 - Atasm version bump to 1.13
 - Atasm can now generate CC65 header and atasm include files from your project

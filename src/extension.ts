@@ -5,6 +5,8 @@ import * as application from './application';
 import { WelcomePage } from './pages/welcome';
 import './statusbar';
 
+import { AsmSymbolProvider } from './explorer/asmSymbols';
+
 import * as path from 'path';
 import * as fs from 'fs';
 import * as util from 'util';
@@ -77,7 +79,7 @@ export async function activate(context: vscode.ExtensionContext) {
 	context.subscriptions.push(buildAndDebug);
 	context.subscriptions.push(resetBuild);
 
-	// Register intellisence features
+	// Register intellisense features
 	//await application.RegisterDocumentSymbolProvidersAsync(context);
 	//await application.RegisterDefinitionProvidersAsync(context);
 	//await application.RegisterReferenceProvidersAsync(context);
@@ -87,7 +89,25 @@ export async function activate(context: vscode.ExtensionContext) {
 	await application.ShowStartupMessagesAsync();
 
 	// Fix Linux/MacOS exec permissions on shipped atasm
-	await application.Assembler.FixExecPermissions();
+	await application.RunAssembler.FixExecPermissions();
+
+	// Setup the constant/label/etc symbol explorer window and callbacks
+	const rootPath = (vscode.workspace.workspaceFolders && (vscode.workspace.workspaceFolders.length > 0)) ? vscode.workspace.workspaceFolders[0].uri.fsPath : undefined;
+	const asmSymbolsProvider = new AsmSymbolProvider(rootPath);
+	vscode.window.registerTreeDataProvider('asmSymbolExplorer', asmSymbolsProvider);
+	vscode.commands.registerCommand('asmSymbolExplorer.refreshEntry', () => asmSymbolsProvider.refresh());
+	vscode.commands.registerCommand('extension.openSourceAtLine', async info => {
+		// Goto the file and line number
+		const uri = vscode.Uri.joinPath(vscode.Uri.file(info.loc), info.file);
+
+		vscode.workspace.openTextDocument(uri).then(doc => {
+            vscode.window.showTextDocument(doc, { preview: false }).then(editor => {
+                const line: number = parseInt(info.ln, 10)-1;
+				editor.selection = new vscode.Selection(new vscode.Position(line, 0), new vscode.Position(line, 0));
+				editor.revealRange(new vscode.Range(line, 0, line, 0), vscode.TextEditorRevealType.Default);
+            });
+        });
+	});
 }
 
 // this method is called when your extension is deactivated
@@ -130,7 +150,7 @@ async function getAssemblerTasks(): Promise<vscode.Task[]> {
 				}
 			}
 			catch (err) {
-				// There was a problem loading the atasb-build.json file.
+				// There was a problem loading the atasm-build.json file.
 			}
 		}
 

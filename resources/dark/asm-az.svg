@@ -1,0 +1,14 @@
+<svg width="32" height="32" xmlns="http://www.w3.org/2000/svg">
+ <g id="Layer_1">
+  <title>Layer 1</title>
+  <path fill="#F6F6F6" opacity="0" id="svg_17" d="m16.43753,24.4375l-16,0l0,-16l16,0l0,16z" class="icon-canvas-transparent"/>
+  <path fill="#F6F6F6" opacity="0" id="svg_16" d="m16.50003,10.9375l0,10c0,0.827 -0.673,1.5 -1.5,1.5l-11.996,0c-0.827,0 -1.5,-0.673 -1.5,-1.5l0,-8c0,-0.827 0.673,-1.5 1.5,-1.5l2.886,0l1,-2l8.11,0c0.827,0 1.5,0.673 1.5,1.5z" class="icon-vs-out"/>
+  <path fill="#F0EFF1" opacity="0" id="svg_14" d="m14.43753,11.4375l0,1l-6.5,0l0.5,-1l6,0z" class="icon-vs-fg"/>
+  <line fill="none" stroke="#C5C5C5" x1="25.1875" y1="3.62509" x2="25.1875" y2="27.49994" id="svg_21"/>
+  <line fill="none" stroke="#C5C5C5" x1="27.68748" y1="24.74996" x2="24.9375" y2="27.87494" id="svg_20"/>
+  <line fill="none" x1="22.56251" y1="24.74996" x2="25.56249" y2="27.87494" id="svg_19" stroke="#C5C5C5"/>
+  <text xml:space="preserve" text-anchor="start" font-family="'Quicksand Medium'" font-size="18" id="svg_28" y="13.49989" x="8.25003" fill="#cccccc">A</text>
+  <text xml:space="preserve" text-anchor="start" font-family="'Quicksand Medium'" font-size="18" id="svg_29" y="29.18733" x="7.75003" fill="#cccccc">Z</text>
+ </g>
+
+</svg>

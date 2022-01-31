@@ -3,7 +3,7 @@
 	"displayName": "Atasm Altirra Bridge",
 	"shortName": "Atasm",
 	"description": "Build and debug your 6502 assembler projects with Atasm and Altirra",
-	"version": "1.5.0",
+	"version": "1.6.0",
 	"icon": "images/icon.png",
 	"author": "Peter Hinz",
 	"publisher": "cerebus",
@@ -34,10 +34,29 @@
 		"onCommand:extension.buildGameAndRun",
 		"onCommand:extension.buildAndDebug",
 		"onCommand:extension.createAtasmBuildJson",
-		"onCommand:extension.resetBuild"
+		"onCommand:extension.resetBuild",
+		"onView:asmSymbolExplorer"
 	],
 	"main": "./out/extension.js",
 	"contributes": {
+		"viewsContainers": {
+			"activitybar": [
+				{
+					"id": "asm-explorer",
+					"title": "Asm Symbol Explorer",
+					"icon": "images/asm-explorer.svg"
+				}
+			]
+		},
+		"views": {
+			"asm-explorer": [
+				{
+					"id": "asmSymbolExplorer",
+					"name": "Const & Label definitions",
+					"contextualTitle": "Asm Definition & Label Explorer"
+				}
+			]
+		},
 		"breakpoints": [
 			{
 				"language": "atasm"
@@ -202,6 +221,14 @@
 		],
 		"commands": [
 			{
+				"command": "asmSymbolExplorer.refreshEntry",
+				"title": "Refresh",
+				"icon": {
+					"light": "resources/light/refresh.svg",
+					"dark": "resources/dark/refresh.svg"
+				}
+			},
+			{
 				"command": "extension.openWelcomePage",
 				"title": "Open the Welcome page",
 				"category": "Atasm"
@@ -253,6 +280,13 @@
 					"when": "resourceLangId == atasm || resourceLangId == json",
 					"group": "1_run@30"
 				}
+			],
+			"view/title": [
+				{
+					"command": "asmSymbolExplorer.refreshEntry",
+					"when": "view == asmSymbolExplorer",
+					"group": "navigation"
+				}
 			]
 		},
 		"taskDefinitions": [
@@ -279,7 +313,7 @@
 		"test": "node ./out/test/runTest.js",
 		"clean": "rimraf out/",
 		"copy-files": "copyfiles -u 2 src/public/**/*.html src/public/**/*.css src/public/**/*.js out/",
-		"copy-files2": "copyfiles languages/** syntaxes/** out/",
+		"copy-files2": "copyfiles resources/** languages/** syntaxes/** out/",
 		"final": "npm run clean && npm run compile && npm run copy-files && npm run copy-files2"
 	},
 	"dependencies": {

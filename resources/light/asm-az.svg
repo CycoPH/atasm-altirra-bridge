@@ -1,0 +1,10 @@
+<svg width="32" height="32" xmlns="http://www.w3.org/2000/svg">
+ <g id="Layer_1">
+  <title>Layer 1</title>
+  <text xml:space="preserve" text-anchor="start" font-family="'Quicksand Medium'" font-size="18" id="svg_4" y="14.00002" x="3.87498" stroke-width="0" stroke="#000" fill="#000000">A</text>
+  <text xml:space="preserve" text-anchor="start" font-family="'Quicksand Medium'" font-size="18" id="svg_5" y="29.87491" x="3.87508" stroke-width="0" stroke="#000" fill="#000000">Z</text>
+  <line id="svg_6" y2="26.49993" x2="23.24996" y1="2.62508" x1="23.24996" stroke="#000" fill="none"/>
+  <line id="svg_7" y2="26.49993" x2="22.99996" y1="23.37495" x1="25.74994" stroke="#000" fill="none"/>
+  <line stroke="#000" id="svg_8" y2="26.49993" x2="23.62495" y1="23.37495" x1="20.62497" fill="none"/>
+ </g>
+</svg>

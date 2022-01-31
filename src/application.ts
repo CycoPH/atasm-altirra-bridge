@@ -46,7 +46,7 @@ export const CompilerOutputChannel: vscode.OutputChannel = vscode.window.createO
 // -------------------------------------------------------------------------------------
 // Objects
 // -------------------------------------------------------------------------------------
-export const Assembler: AssemblerRunner = new AssemblerRunner();
+export const RunAssembler: AssemblerRunner = new AssemblerRunner();
 export const Emulator: EmulatorRunner = new EmulatorRunner();
 export var WorkspaceFolder: string = "";
 
@@ -133,7 +133,7 @@ export async function BuildGameAsync(fileUri: vscode.Uri): Promise<boolean> {
 		vscode.window.showErrorMessage("Build configuration not setup");
 	}
 
-	return await Assembler.BuildGameAsync();
+	return await RunAssembler.BuildGameAsync();
 }
 
 export async function BuildGameAndRunAsync(fileUri: vscode.Uri): Promise<boolean> {
@@ -141,7 +141,7 @@ export async function BuildGameAndRunAsync(fileUri: vscode.Uri): Promise<boolean
 		return false;
 	}
 	// Build went ok, now launch in Altirra
-	await Emulator.RunGameAsync(Assembler.OutputFileName);
+	await Emulator.RunGameAsync(RunAssembler.OutputFileName);
 
 	// Result
 	return true;
@@ -160,14 +160,14 @@ export async function BuildAndDebugAsync(fileUri: vscode.Uri): Promise<boolean> 
 	await SaveBreakpoints();
 
 	// Build went ok, now launch in Altirra
-	await Emulator.RunDebuggerAsync(Assembler.OutputFileName);
+	await Emulator.RunDebuggerAsync(RunAssembler.OutputFileName);
 
 	// Result
 	return true;
 }
 
 export async function ResetBuildAsync() {
-	Assembler.ResetBuild();
+	RunAssembler.ResetBuild();
 }
 
 /**
@@ -175,7 +175,7 @@ export async function ResetBuildAsync() {
  * @returns true if the breakpoints were saved away
  */
 export async function SaveBreakpoints(): Promise<boolean> {
-	var folder = Assembler.OutputBreakpoints;
+	var folder = RunAssembler.OutputBreakpoints;
 	if (!folder || folder.length === 0) {
 		return false;
 	}
@@ -228,18 +228,17 @@ export async function SaveBreakpoints(): Promise<boolean> {
 	if (breakLines.length > 0) {
 		// Write the new breakpoint locations to file
 		let writeData = Buffer.from(breakLines, 'utf8');
-		await vscode.workspace.fs.writeFile(vscode.Uri.file(Assembler.OutputBreakpoints), writeData);
+		await vscode.workspace.fs.writeFile(vscode.Uri.file(RunAssembler.OutputBreakpoints), writeData);
 
-		// Write the .atdbg debugger script to disc
+		// Write the .atdbg debugger script to disk
 		// 1. Prepend some commands
 		atdbgLines = "bc *" + os.EOL + atdbgLines + `.echo ${numBreakpoints} breakpoints from ${numFiles} files have been set}` + os.EOL;
 		atdbgLines += ".sourcemode on" + os.EOL;
 
 		writeData = Buffer.from(atdbgLines, 'utf8');
-		await vscode.workspace.fs.writeFile(vscode.Uri.file(Assembler.OutputDebugCmds), writeData);
+		await vscode.workspace.fs.writeFile(vscode.Uri.file(RunAssembler.OutputDebugCmds), writeData);
 
 		WriteToCompilerTerminal(`${numBreakpoints} breakpoints from ${numFiles} files have been recorded.`);
-
 	}
 
 	return true;
@@ -268,7 +267,7 @@ export async function CreateAtasmBuildJsonAsync(): Promise<boolean> {
 			vscode.window.showTextDocument(uri, { viewColumn: vscode.ViewColumn.Active });
 		} catch {
 			let configSrc = [
-				"comment", "Altrirra configuration file.",
+				"comment", "Altirra configuration file.",
 				"\n",
 				"_1", "Which asm file is to be compiled?",
 				"input", "theapp.asm",
@@ -327,6 +326,11 @@ export async function CreateAtasmBuildJsonAsync(): Promise<boolean> {
 	return false;
 }
 
+/**
+ * Write a message to the "Compiler" channel
+ * @param message Message to be written to the output
+ * @param writeToLog if true then message is written to the console
+ */
 export function WriteToCompilerTerminal(message: string, writeToLog: boolean = false): void {
 	CompilerOutputChannel.appendLine(message);
 	if (writeToLog) { console.log(`debugger:${message}`); }
@@ -362,7 +366,7 @@ export async function ShowStartupMessagesAsync(): Promise<void> {
 	// Update latest version
 	configuration.update(`application.configuration.latestVersion`, Version, vscode.ConfigurationTarget.Global);
 
-	// buttons
+	// Buttons
 	let latestChanges = "Learn more about the latest changes";
 	let dontShowMeThisMessage = "Don't show me this message again";
 
@@ -410,5 +414,5 @@ export async function SaveFilesAndContinueAsync(fileUri: vscode.Uri | undefined)
 }
 
 export async function getAssemblerCommandLine4Task(filename: string | undefined): Promise<string> {
-	return await Assembler.GetAssemblerCommandLine4Task(filename);
+	return await RunAssembler.GetAssemblerCommandLine4Task(filename);
 }

@@ -1,7 +1,7 @@
 # ATasm Altirra Bridge - write 6502, assemble, run and debug all in one
 This extension lets you code your Atari 8 bit assembler projects using a modern tool chain.
 
-Write in VSCode and use the status bar icons or keyboard shortcuts to assemble, run and debug your project. Set breakpoints and debug with ease.
+Write in VSCode and use the status bar icons or keyboard shortcuts to assemble, run and debug your project. Set breakpoints and debug with ease. Use the symbol explorer to quickly navigate to parts of your code.
 
 ## Features
 This extension includes the following features:
@@ -9,6 +9,7 @@ This extension includes the following features:
 * Cross-platform macro assembler (ATasm)
 * Run your code in the Altirra emulator (or setup another one)
 * Source level debugging with breakpoints
+* Constant/Label/Macro explorer to quickly navigate to parts of your code
 
 ## Syntax Highlighting
 ![Syntax Highlighting](images/syntax.png)
@@ -147,6 +148,18 @@ This extension contributes the following settings:
 ## Known Issues
 
 ## Release Notes
+
+### 1.6.0
+- Atasm version bump to 1.17
+- Atasm can now dump constant, label and macro definition information to a file
+  - use command line switch *-hv* to dump all the info
+  - use -hv[clm] c=constant l=labels m=macros to select a subset of info to dump
+  - `-hvc` only dumps the defined constants
+  - `-hvl` only dumps information about labels
+- The 'asm-symbols.json' file in the root of the project can be viewed in vscode via
+  a new explorer window. Clicking on any of the constants, labels, macros or included
+  files will take you the the source code instantly.
+
 ### 1.5.0
 - Atasm version bump to 1.13
 - Atasm can now generate CC65 header and atasm include files from your project

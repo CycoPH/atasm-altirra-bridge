@@ -60,7 +60,7 @@ export class AssemblerRunner implements vscode.Disposable {
 	 * @returns string to execute in the VSCode task
 	 */
 	public async GetAssemblerCommandLine4Task(thisAsmFile: string | undefined): Promise<string> {
-		this.InitGetAssemberCommandLineGetter();
+		this.InitGetAssemblerCommandLineGetter();
 
 		let args: string[] = thisAsmFile ? await this.GetAssemblerCommandLineDirectly(thisAsmFile) : await this.GetAssemblerCommandLineFromBuildInfo();
 
@@ -169,7 +169,7 @@ export class AssemblerRunner implements vscode.Disposable {
 	/**
 	 * Make sure that there is some AtasmPath configuration
 	 */
-	private InitGetAssemberCommandLineGetter() {
+	private InitGetAssemblerCommandLineGetter() {
 		this.InitOriginalPath();
 		this.Configuration = application.GetConfiguration();
 		this.WorkspaceFolder = this.GetWorkspaceFolder();
