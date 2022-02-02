@@ -135,7 +135,7 @@ export class AsmSymbolProvider implements vscode.TreeDataProvider<AsmSymbolInfo>
 
 				case "labelsSRC": {
 					const srcFiles = asmSymbolJson.labels
-						? asmSymbolJson.labels.map((it: { file: string; }) => it.file).sort()
+						? asmSymbolJson.labels.map((it: { file: string; }) => it.file).filter((some:any) => some !== undefined).sort()
 						: [];
 					const unique = [... new Set(srcFiles)];
 					return unique.map( it => new AsmSymbolInfo("labelsLimit", ""+it, undefined, vscode.TreeItemCollapsibleState.Collapsed, undefined, undefined, "includes") );

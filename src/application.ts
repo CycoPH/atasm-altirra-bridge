@@ -7,7 +7,10 @@ import * as path from 'path';
 import * as fs from 'fs';
 import * as util from 'util';
 
-import { AssemblerRunner } from './assembler/AssemblerRunner';
+import { AssemblerRunnerBase } from './assembler/AssemblerRunnerBase';
+import { AtasmAssemblerRunner } from './assembler/AtasmAssemblerRunner';
+import { MadsAssemblerRunner } from './assembler/MadsAssemblerRunner';
+
 import { EmulatorRunner } from './emulators/EmulatorRunner';
 
 
@@ -46,7 +49,11 @@ export const CompilerOutputChannel: vscode.OutputChannel = vscode.window.createO
 // -------------------------------------------------------------------------------------
 // Objects
 // -------------------------------------------------------------------------------------
-export const RunAssembler: AssemblerRunner = new AssemblerRunner();
+export const RunAssembler: AssemblerRunnerBase[] = [
+	new AtasmAssemblerRunner(),
+	new MadsAssemblerRunner(),
+];
+
 export const Emulator: EmulatorRunner = new EmulatorRunner();
 export var WorkspaceFolder: string = "";
 
@@ -133,7 +140,7 @@ export async function BuildGameAsync(fileUri: vscode.Uri): Promise<boolean> {
 		vscode.window.showErrorMessage("Build configuration not setup");
 	}
 
-	return await RunAssembler.BuildGameAsync();
+	return await SelectAssembler().BuildGameAsync();
 }
 
 export async function BuildGameAndRunAsync(fileUri: vscode.Uri): Promise<boolean> {
@@ -141,7 +148,7 @@ export async function BuildGameAndRunAsync(fileUri: vscode.Uri): Promise<boolean
 		return false;
 	}
 	// Build went ok, now launch in Altirra
-	await Emulator.RunGameAsync(RunAssembler.OutputFileName);
+	await Emulator.RunGameAsync(SelectAssembler().OutputFileName);
 
 	// Result
 	return true;
@@ -160,14 +167,14 @@ export async function BuildAndDebugAsync(fileUri: vscode.Uri): Promise<boolean> 
 	await SaveBreakpoints();
 
 	// Build went ok, now launch in Altirra
-	await Emulator.RunDebuggerAsync(RunAssembler.OutputFileName);
+	await Emulator.RunDebuggerAsync(SelectAssembler().OutputFileName);
 
 	// Result
 	return true;
 }
 
 export async function ResetBuildAsync() {
-	RunAssembler.ResetBuild();
+	SelectAssembler().ResetBuild();
 }
 
 /**
@@ -175,7 +182,7 @@ export async function ResetBuildAsync() {
  * @returns true if the breakpoints were saved away
  */
 export async function SaveBreakpoints(): Promise<boolean> {
-	var folder = RunAssembler.OutputBreakpoints;
+	var folder = SelectAssembler().OutputBreakpoints;
 	if (!folder || folder.length === 0) {
 		return false;
 	}
@@ -228,7 +235,7 @@ export async function SaveBreakpoints(): Promise<boolean> {
 	if (breakLines.length > 0) {
 		// Write the new breakpoint locations to file
 		let writeData = Buffer.from(breakLines, 'utf8');
-		await vscode.workspace.fs.writeFile(vscode.Uri.file(RunAssembler.OutputBreakpoints), writeData);
+		await vscode.workspace.fs.writeFile(vscode.Uri.file(SelectAssembler().OutputBreakpoints), writeData);
 
 		// Write the .atdbg debugger script to disk
 		// 1. Prepend some commands
@@ -236,7 +243,7 @@ export async function SaveBreakpoints(): Promise<boolean> {
 		atdbgLines += ".sourcemode on" + os.EOL;
 
 		writeData = Buffer.from(atdbgLines, 'utf8');
-		await vscode.workspace.fs.writeFile(vscode.Uri.file(RunAssembler.OutputDebugCmds), writeData);
+		await vscode.workspace.fs.writeFile(vscode.Uri.file(SelectAssembler().OutputDebugCmds), writeData);
 
 		WriteToCompilerTerminal(`${numBreakpoints} breakpoints from ${numFiles} files have been recorded.`);
 	}
@@ -414,5 +421,21 @@ export async function SaveFilesAndContinueAsync(fileUri: vscode.Uri | undefined)
 }
 
 export async function getAssemblerCommandLine4Task(filename: string | undefined): Promise<string> {
-	return await RunAssembler.GetAssemblerCommandLine4Task(filename);
+	return await SelectAssembler().GetAssemblerCommandLine4Task(filename);
+}
+
+/**
+ * Select which assembler runner to use
+ * @returns The assembler runner to be used
+ */
+export function SelectAssembler(): AssemblerRunnerBase {
+	// Use Atasm by default
+	let configuration = GetConfiguration();
+	let command = (configuration.get<string>('assembler.whichAssembler', 'ATasm'));
+
+	var asmIdx = RunAssembler.findIndex(asm => asm.Id === command);
+	if (asmIdx < 0) {
+		asmIdx = 0; // ATasm by default
+	}
+	return RunAssembler[asmIdx];		
 }

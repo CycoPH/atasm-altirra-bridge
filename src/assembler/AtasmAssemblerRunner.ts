@@ -6,76 +6,17 @@ import * as application from '../application';
 import * as filesystem from '../filesystem';
 import * as execute from '../execute';
 
-export class AssemblerRunner implements vscode.Disposable {
-	// Features
-	public IsRunning: boolean = false;
+import { AssemblerRunnerBase } from './AssemblerRunnerBase';
 
-	protected Configuration: vscode.WorkspaceConfiguration | undefined;
+export class AtasmAssemblerRunner extends AssemblerRunnerBase {
+
 	public DefaultAtasmBin: string = "";				// Where can the shipped atasm be found?
-	public BuildConfig: application.AtasmConfigurationDefinition | undefined = undefined;
-	public WorkspaceFolder: string = "";
-
 	private AtasmPath: string = "atasm";
 
-	// These are items the emulator is interested in
-	public InputFileName: string = "";					// The file being compiled (the input)
-	public InputFileNameBase: string = "";				// Just the name part of the input, without the extension
-	public OutputFolder: string = "";					// Where will all the output go
-	public OutputFileName: string = "";					// The path and name of the assembled file
-	public OutputSymbolsFileName: string = "";
-	public OutputListFileName: string = "";
-	public OutputBreakpoints: string = "";				// The file that set breakpoints will be written to
-	public OutputDebugCmds: string = "";				// Altirra debug commands to set breakpoints
-
-	private HaveDonePermissionCheck: boolean = false;
+	//private HaveDonePermissionCheck: boolean = false;
 
 	constructor() {
-		this.InitOriginalPath();
-	}
-
-	public dispose(): void {
-	}
-
-	public async BuildGameAsync(): Promise<boolean> {
-
-		// Initialise
-		let result = await this.InitialiseAsync();
-		if (!result) { return false; }
-
-		// Execute
-		return await this.ExecuteAssemblerAsync();
-	}
-
-	public ResetBuild(): void {
-		this.IsRunning = false;
-	}
-
-	// ==================================================================================
-	// Functions to create the assembler command line when doing stuff via a task
-	// ==================================================================================
-
-	/**
-	 * Build the command to execute in a VSCode Task<>
-	 * @param thisAsmFile Assembler file to compile
-	 * @returns string to execute in the VSCode task
-	 */
-	public async GetAssemblerCommandLine4Task(thisAsmFile: string | undefined): Promise<string> {
-		this.InitGetAssemblerCommandLineGetter();
-
-		let args: string[] = thisAsmFile ? await this.GetAssemblerCommandLineDirectly(thisAsmFile) : await this.GetAssemblerCommandLineFromBuildInfo();
-
-		if (application.IsWindows) {
-			// ShellExecution will run the command in a PowerShell -command
-			// The whole thing needs to be "& {....}" escaped and each parameter (not the first one needs to be in '...')
-			var cmd = `"& {${args[0]}`;
-			for (var i = 1; i < args.length; ++i) {
-				cmd += ` '${args[i]}'`;
-			}
-			cmd += '}"';
-			return cmd;
-		}
-
-		return "";
+		super("ATasm");
 	}
 
 	// ----------------------------------------------------------------------------------
@@ -86,7 +27,7 @@ export class AssemblerRunner implements vscode.Disposable {
 	 * Build assembler command line from atasm-build.json configuration
 	 * @returns array of command line arguments. [0] is the assembler [1..] are the parameters
 	 */
-	private async GetAssemblerCommandLineFromBuildInfo(): Promise<string[]> {
+	protected async GetAssemblerCommandLineFromBuildInfo(): Promise<string[]> {
 		let args: string[] = [];
 
 		if (!await application.EnsureBuildConfigIsLoaded()) { return args; }
@@ -142,7 +83,7 @@ export class AssemblerRunner implements vscode.Disposable {
 	 * @param thisAsmFile Name of the file to assemble
 	 * @returns array of command line arguments. [0] is the assembler [1..] are the parameters
 	 */
-	private async GetAssemblerCommandLineDirectly(thisAsmFile: string): Promise<string[]> {
+	protected async GetAssemblerCommandLineDirectly(thisAsmFile: string): Promise<string[]> {
 		this.InputFileName = thisAsmFile.length > 0 ? thisAsmFile : "theapp.asm";
 		this.InputFileNameBase = path.parse(this.InputFileName).name;
 
@@ -169,7 +110,7 @@ export class AssemblerRunner implements vscode.Disposable {
 	/**
 	 * Make sure that there is some AtasmPath configuration
 	 */
-	private InitGetAssemblerCommandLineGetter() {
+	protected InitGetAssemblerCommandLineGetter(): void {
 		this.InitOriginalPath();
 		this.Configuration = application.GetConfiguration();
 		this.WorkspaceFolder = this.GetWorkspaceFolder();
@@ -184,13 +125,13 @@ export class AssemblerRunner implements vscode.Disposable {
 	}
 
 	// ========================================================================
-	private async ExecuteAssemblerAsync(): Promise<boolean> {
+	// Implement the ATasm specific methods
+	protected async ExecuteAssemblerAsync(): Promise<boolean> {
 		let command = this.AtasmPath;
 
 		// Arguments
 		let args: string[] = [];
 
-		//args.push("-v");
 		if (this.BuildConfig?.params) {
 			args.push(this.BuildConfig.params);
 		}
@@ -263,7 +204,7 @@ export class AssemblerRunner implements vscode.Disposable {
 			});
 		this.IsRunning = false;
 
-		// Finalise
+		// Finalize
 		if (executeResult) {
 			executeResult = await this.VerifyCompiledFileSizeAsync();
 		}
@@ -272,7 +213,97 @@ export class AssemblerRunner implements vscode.Disposable {
 		return executeResult;
 	}
 
-	private async InitialiseAsync(): Promise<boolean> {
+	/**
+	 * Remove the files that the build process will (re-)produce
+	 */
+	private async RemoveOldOutputFilesAsync(): Promise<void> {
+		let files = [
+			path.join(this.WorkspaceFolder, this.OutputFileName),
+			path.join(this.WorkspaceFolder, this.OutputSymbolsFileName),
+			path.join(this.WorkspaceFolder, this.OutputListFileName),
+			this.OutputBreakpoints,
+			this.OutputDebugCmds,
+		];
+
+		for await (let fileToCheck of files) {
+			// Validate
+			if (await filesystem.FileExistsAsync(fileToCheck)) {
+				await filesystem.RemoveFileAsync(fileToCheck);
+			}
+		}
+	}
+
+	/**
+	 * 
+	 * @returns boolean true if the files were found and non-zero lenght, false otherwise
+	 */
+	private async VerifyCompiledFileSizeAsync(): Promise<boolean> {
+		// Verify created file(s)
+		application.WriteToCompilerTerminal(`Verifying assembler output...`);
+
+		let files = [this.OutputFileName];
+		if (this.BuildConfig?.withDebug) {
+			files.push(this.OutputSymbolsFileName);
+			files.push(this.OutputListFileName);
+		}
+
+		let badFiles:string[] = [];
+		let okFiles:string[] = [];
+
+		let hasMissingFiles = false;
+		for await (let fileToCheck of files) {
+			// Validate
+			let fileStats = await filesystem.GetFileStatsAsync(path.join(this.WorkspaceFolder, fileToCheck));
+			if (fileStats && fileStats.size > 0) {
+				okFiles.push(fileToCheck);
+				continue;
+			}
+			if (fileStats) {
+				// Empty output?
+				application.WriteToCompilerTerminal(`WARNING: Assembler output is empty: '${fileToCheck}'`);
+			}
+			else {
+				// Failed
+				application.WriteToCompilerTerminal(`ERROR: Failed to create file: '${fileToCheck}'`);
+			}
+			badFiles.push(fileToCheck);
+
+			hasMissingFiles = true;
+		}
+		if (okFiles.length) {
+			application.WriteToCompilerTerminal(`Generated files:[${okFiles.join(", ")}] are ok`);
+		}
+
+		// Result
+		return true;
+	}
+
+	/**
+	 * Make sure that the designated output folder is created
+	 * @returns boolean - true if the folder is there, false otherwise
+	 */
+	private async MakeOutputFolder(): Promise<boolean> {
+
+		let folder = path.join(this.WorkspaceFolder, this.OutputFolder);
+		if (!await filesystem.FolderExistsAsync(folder)) {
+			// Not there, create it
+			return await filesystem.MkDirAsync(folder);
+		}
+
+		return true;
+	}
+
+	protected InitOriginalPath(): void {
+		if (application.IsWindows) {
+			// ATasm.exe is 32-bits so ignore the architecture
+			this.DefaultAtasmBin = path.join(application.Path, "bin", application.OSPlatform, "atasm.exe");
+		}
+		else {
+			this.DefaultAtasmBin = path.join(application.Path, "bin", application.OSPlatform, application.OSArch, "atasm");
+		}
+	}
+	
+	protected async InitialiseAsync(): Promise<boolean> {
 
 		// Prepare
 		let result = true;
@@ -336,104 +367,6 @@ export class AssemblerRunner implements vscode.Disposable {
 		await this.RemoveOldOutputFilesAsync();
 
 		return result;
-	}
-
-	/**
-	 * Remove the files that the build process will (re-)produce
-	 */
-	private async RemoveOldOutputFilesAsync(): Promise<void> {
-		let files = [
-			path.join(this.WorkspaceFolder, this.OutputFileName),
-			path.join(this.WorkspaceFolder, this.OutputSymbolsFileName),
-			path.join(this.WorkspaceFolder, this.OutputListFileName),
-			this.OutputBreakpoints,
-			this.OutputDebugCmds,
-		];
-
-		for await (let fileToCheck of files) {
-			// Validate
-			if (await filesystem.FileExistsAsync(fileToCheck)) {
-				await filesystem.RemoveFileAsync(fileToCheck);
-			}
-		}
-	}
-
-	private GetWorkspaceFolder(): string {
-		// Workspace (last resort)
-		if (vscode.workspace.workspaceFolders) {
-			return vscode.workspace.workspaceFolders[0].uri.fsPath;
-		}
-		return "";
-	}
-
-	/**
-	 * 
-	 * @returns boolean true if the files were found and non-zero lenght, false otherwise
-	 */
-	private async VerifyCompiledFileSizeAsync(): Promise<boolean> {
-		// Verify created file(s)
-		application.WriteToCompilerTerminal(`Verifying assembler output...`);
-
-		let files = [this.OutputFileName];
-		if (this.BuildConfig?.withDebug) {
-			files.push(this.OutputSymbolsFileName);
-			files.push(this.OutputListFileName);
-		}
-
-		let badFiles:string[] = [];
-		let okFiles:string[] = [];
-
-		let hasMissingFiles = false;
-		for await (let fileToCheck of files) {
-			// Validate
-			let fileStats = await filesystem.GetFileStatsAsync(path.join(this.WorkspaceFolder, fileToCheck));
-			if (fileStats && fileStats.size > 0) {
-				okFiles.push(fileToCheck);
-				continue;
-			}
-			if (fileStats) {
-				// Empty output?
-				application.WriteToCompilerTerminal(`WARNING: Assembler output is empty: '${fileToCheck}'`);
-			}
-			else {
-				// Failed
-				application.WriteToCompilerTerminal(`ERROR: Failed to create file: '${fileToCheck}'`);
-			}
-			badFiles.push(fileToCheck);
-
-			hasMissingFiles = true;
-		}
-		if (okFiles.length) {
-			application.WriteToCompilerTerminal(`Generated files:[${okFiles.join(", ")}] are ok`);
-		}
-
-		// Result
-		return true;
-	}
-
-	/**
-	 * Make sure that the designated output folder is created
-	 * @returns boolean - true if the folder is there, false otherwise
-	 */
-	private async MakeOutputFolder(): Promise<boolean> {
-
-		let folder = path.join(this.WorkspaceFolder, this.OutputFolder);
-		if (!await filesystem.FolderExistsAsync(folder)) {
-			// Not there, create it
-			return await filesystem.MkDirAsync(folder);
-		}
-
-		return true;
-	}
-
-	private InitOriginalPath() {
-		if (application.IsWindows) {
-			// ATasm.exe is 32-bits so ignore the architecture
-			this.DefaultAtasmBin = path.join(application.Path, "bin", application.OSPlatform, "atasm.exe");
-		}
-		else {
-			this.DefaultAtasmBin = path.join(application.Path, "bin", application.OSPlatform, application.OSArch, "atasm");
-		}
 	}
 
 	public async FixExecPermissions(): Promise<void> {

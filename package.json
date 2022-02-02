@@ -66,10 +66,30 @@
 			"type": "object",
 			"title": "Atasm Altirra Bridge",
 			"properties": {
+				"atasm-altirra-bridge.assembler.whichAssembler": {
+					"type": "string",
+					"enum": [
+						"ATasm",
+						"Mads"
+					],
+					"enumDescriptions": [
+						"ATasm is shipped with this extension",
+						"Mads, you must setup a path to it"
+					],
+					"default": "ATasm",
+					"description": "Specify which assembler to use.",
+					"scope": "machine"
+				},
 				"atasm-altirra-bridge.assembler.atasmPath": {
 					"type": "string",
 					"default": "",
 					"description": "Don't wish to use the included version of atasm? Specify the full path (including filename) of your atasm installation:",
+					"scope": "machine"
+				},
+				"atasm-altirra-bridge.assembler.madsPath": {
+					"type": "string",
+					"default": "",
+					"description": "Don't wish to use atasm? Specify the full path (including filename) of mads:",
 					"scope": "machine"
 				},
 				"atasm-altirra-bridge.editor.clearPreviousOutput": {

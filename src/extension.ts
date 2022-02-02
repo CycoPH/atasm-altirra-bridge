@@ -89,7 +89,7 @@ export async function activate(context: vscode.ExtensionContext) {
 	await application.ShowStartupMessagesAsync();
 
 	// Fix Linux/MacOS exec permissions on shipped atasm
-	await application.RunAssembler.FixExecPermissions();
+	await application.SelectAssembler().FixExecPermissions();
 
 	// Setup the constant/label/etc symbol explorer window and callbacks
 	const rootPath = (vscode.workspace.workspaceFolders && (vscode.workspace.workspaceFolders.length > 0)) ? vscode.workspace.workspaceFolders[0].uri.fsPath : undefined;

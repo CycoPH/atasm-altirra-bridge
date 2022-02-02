@@ -1,7 +1,7 @@
-# ATasm Altirra Bridge - write 6502, assemble, run and debug all in one
+# ATasm Altirra Bridge - write 6502 code, assemble, run and debug all in one
 This extension lets you code your Atari 8 bit assembler projects using a modern tool chain.
 
-Write in VSCode and use the status bar icons or keyboard shortcuts to assemble, run and debug your project. Set breakpoints and debug with ease. Use the symbol explorer to quickly navigate to parts of your code.
+Write in VSCode and use the status bar icons or keyboard shortcuts to assemble, run and debug your project. Set breakpoints and debug with ease. Use the symbol explorer to quickly navigate to parts of your code (currently only available with ATasm)
 
 ## Features
 This extension includes the following features:
@@ -10,9 +10,47 @@ This extension includes the following features:
 * Run your code in the Altirra emulator (or setup another one)
 * Source level debugging with breakpoints
 * Constant/Label/Macro explorer to quickly navigate to parts of your code
+* Optional settings to use mads (https://mads.atari8.info/mads_eng.html) as your assembler
 
 ## Syntax Highlighting
 ![Syntax Highlighting](images/syntax.png)
+
+## Symbol Explorer
+Use the ![Symbol Explorer](images/explorericon.png) icon to switch to the `Asm Symbol Explorer`.
+
+This tool shows data exported by the `ATasm` assembler. Use the `-hv` switch in the `params` section to generate the data.
+
+```
+atasm-build.json
+    "_4": "Additional atasm parameters:",
+	"params": "-hv",
+```
+
+The demo file below will produce the data shown in the image below:
+```
+	* = $2000
+TEST_ME = 456
+boot
+	LDA #1
+	STA TheEnd
+loop JMP loop
+TheEnd .byte 0
+```
+![Symbol Explorer](images/explorer.png)
+
+The first item shows that the `TEST_ME` constant has a value of 456 (in hex $01c8). Clicking on the `TEST_ME` symbol will take you to the line where the symbol is defined in the source file.
+
+The second section show labels sorted by address/memory location:
+`ORIGINAL_GRAPHICS` was set to 0 on the command line, in this case in the `_5`/`symbols` section of the `atasm-build.json` file.
+```
+atasm-build.json
+    "symbols": [
+		"ORIGINAL_GRAPHICS=0"
+	],
+```
+
+The `BOOT`, `LOOP` and `THEEND` symbols where defined in the assembler source code. The location in memory together with the origin in the source file is shown. In this case `LOOP` is at address $2005.
+
 
 ## Build tasks and shortcuts for building you assembler projects
 The extension registers build tasks for 6502 assembly files which invoke `ATasm` on the file
@@ -80,9 +118,14 @@ Here is what source level debugging with a hit breakpoint looks like in Altirra
 ## Installing and configuring
 
 ### ATasm and Altirra
-A version of the [ATasm](https://github.com/CycoPH/atasm) macro assembler ships with this extension.
+A version of the [ATasm](https://github.com/CycoPH/atasm) macro assembler ships with this extension. The Linux x64 and Windows x64 binaries are included.
 
 Altirra can be downloaded from [here](http://www.virtualdub.org/altirra.html). A description on how to configure it can be found in the [Retro Coding Blog](https://retro.cerebus.co.za/blog/asm/chapter1/).
+
+### Mads as an alternative assembler
+If you prefer using the every popular MAD-ASSEMBLER (mads) (https://mads.atari8.info/mads_eng.html) then you can setup a the path to it, switch the plugin settings to `Mads` and do nearly all the things you can do with `ATasm`.  The switch is located under `Which Assembler` in the settings.
+
+The only plugin feature not available to `Mads` users is the `Symbol explorer`
 
 ### Updating the extension
 Updates are regularly provided and you will be notified via VS Code when one has been made available. Once an update has been installed you will generally be prompted to restart VS Code.
@@ -131,7 +174,9 @@ There are various settings that control aspects of this extension.  To access th
 
 This extension contributes the following settings:
 
+* `atasm-altirra-bridge.assembler.whichAssembler`: `ATasm` or `Mads`. Select which assembler is being used by the plugin. Defaults to `ATasm`
 * `atasm-altirra-bridge.assembler.atasmPath`: If you wish to use your own version of ATasm (and not the one shipped with the extension) then set the path to it here
+* `atasm-altirra-bridge.assembler.madsPath`: If you wish to use `Mads` as your assembler then set the path to it here and switch the `Which Assembler` setting to `Mads`
 * `atasm-altirra-bridge.editor.clearPreviousOutput`: Whether to clear the previous output window everytime the assembler is triggered.
 * `atasm-altirra-bridge.editor.saveAllFilesBeforeBuild`: Whether to save all files before build is triggered.
 * `atasm-altirra-bridge.editor.saveFileBeforeBuild`: Whether to save the active file before build is triggered.
@@ -157,8 +202,8 @@ This extension contributes the following settings:
   - `-hvc` only dumps the defined constants
   - `-hvl` only dumps information about labels
 - The 'asm-symbols.json' file in the root of the project can be viewed in vscode via
-  a new explorer window. Clicking on any of the constants, labels, macros or included
-  files will take you the the source code instantly.
+  a new `Asm Symbol Explorer`. Clicking on any of the constants, labels, macros or included
+  files will take you to the source code instantly.
 
 ### 1.5.0
 - Atasm version bump to 1.13
