@@ -1,7 +1,13 @@
 import * as vscode from 'vscode';
 import * as fs from 'fs';
 import * as path from 'path';
+import * as application from '../application';
 
+
+
+/**
+ * Views need a TreeDataProvider to supply elements to be shown in the tree.
+  */
 export class AsmSymbolProvider implements vscode.TreeDataProvider<AsmSymbolInfo> {
 
 	private _onDidChangeTreeData: vscode.EventEmitter<AsmSymbolInfo | undefined | void> = new vscode.EventEmitter<AsmSymbolInfo | undefined | void>();
@@ -25,13 +31,13 @@ export class AsmSymbolProvider implements vscode.TreeDataProvider<AsmSymbolInfo>
 		}
 
 		if (element) {
-			return Promise.resolve(this.getInfoFromAsmSymbolsJson(path.join(this.workspaceRoot, 'asm-symbols.json'), element ) );
+			return Promise.resolve(this.getInfoFromAsmSymbolsJson(path.join(this.workspaceRoot, application.SymbolExplorerFilename), element ) );
 		} else {
-			const asmSymbolsJsonPath = path.join(this.workspaceRoot, 'asm-symbols.json');
+			const asmSymbolsJsonPath = path.join(this.workspaceRoot, application.SymbolExplorerFilename);
 			if (this.pathExists(asmSymbolsJsonPath)) {
 				return Promise.resolve(this.getInfoFromAsmSymbolsJson(asmSymbolsJsonPath, undefined) );
 			} else {
-				vscode.window.showInformationMessage('Workspace has no asm-symbols.json');
+				vscode.window.showInformationMessage(`Workspace has no ${application.SymbolExplorerFilename}`);
 				return Promise.resolve([]);
 			}
 		}
@@ -42,6 +48,7 @@ export class AsmSymbolProvider implements vscode.TreeDataProvider<AsmSymbolInfo>
 		//	.name = Label in the assembler
 		//	.addr = Where in memory the label is located
 		//	.file & .ln = Where is the source code the label is defined
+		//	.com = Comment behind the constant
 		const tip = one.file + " ln:" + one.ln;
 		const addr = Number(one.addr);
 		var addrStr:string;
@@ -50,6 +57,9 @@ export class AsmSymbolProvider implements vscode.TreeDataProvider<AsmSymbolInfo>
 			addrStr = `\$${addr.toString(16).padStart(2, '0')} / ${addr}`;
 		} else {
 			addrStr = `\$${addr.toString(16).padStart(4, '0')}`;
+		}
+		if (one.com && one.com.length > 0) {
+			addrStr += ` ; ${one.com}`;
 		}
 
 		return new AsmSymbolInfo("constants", one.name, `= ${addrStr}`, vscode.TreeItemCollapsibleState.None, tip, {
@@ -65,29 +75,54 @@ export class AsmSymbolProvider implements vscode.TreeDataProvider<AsmSymbolInfo>
 		//	.addr = Where in memory the label is located
 		//	.file & .ln = Where is the source code the label is defined
 		//	.cmdln = Label was defined on the command line
+		//	.com = Comment behind the constant
 		if (label.cmdln) {
 			// Command line entry, no command, no goto source
 			return new AsmSymbolInfo("constants", label.cmdln, "from command line", vscode.TreeItemCollapsibleState.None);
 		}
 		// Not a command line entry but one from source code
-		const info = `@ \$${Number(label.addr).toString(16).padStart(4, '0')} ${label.file} ln:${label.ln}`;
-		return new AsmSymbolInfo("labels", label.name, info, vscode.TreeItemCollapsibleState.None, undefined, {
-						command: 'extension.openSourceAtLine',
-						title: '',
-						arguments: [{file:label.file, ln:label.ln, loc:this.workspaceRoot}]
-					});
+		var info = `@ \$${Number(label.addr).toString(16).padStart(4, '0')}`;
+		var tip = ` ${label.file} ln:${label.ln}`;
+		if (label.com && label.com.length > 0) {
+			info += ` ;${label.com}`;
+		}
+
+		return new AsmSymbolInfo(
+			"labels",	// context
+			label.name, // label
+			info, 		// description
+			vscode.TreeItemCollapsibleState.None, // no expansion after this node
+			tip, 
+			{
+				command: 'extension.openSourceAtLine',
+				title: '',
+				arguments: [{file:label.file, ln:label.ln, loc:this.workspaceRoot}]
+			}
+		);
 	};
 
 	private makeMacro = (macros: any) => {
 		// This is a macro
 		//	.name = name in the assembler
 		//	.file & .ln = Where is the source code the macro is defined
-		const info = macros.file + " ln:" + macros.ln;
-		return new AsmSymbolInfo("macros", macros.name, info, vscode.TreeItemCollapsibleState.None, undefined, {
-						command: 'extension.openSourceAtLine',
-						title: '',
-						arguments: [{file:macros.file, ln:macros.ln, loc:this.workspaceRoot}]
-					});
+		//const info = macros.file + " ln:" + macros.ln;
+		var info = "";
+		var tip = ` ${macros.file} ln:${macros.ln}`;
+		if (macros.com && macros.com.length > 0) {
+			info += ` ;${macros.com}`;
+		}
+		return new AsmSymbolInfo(
+			"macros", 
+			macros.name, 
+			info, 
+			vscode.TreeItemCollapsibleState.None, 
+			tip, 
+			{
+				command: 'extension.openSourceAtLine',
+				title: '',
+				arguments: [{file:macros.file, ln:macros.ln, loc:this.workspaceRoot}]
+			}
+		);
 	};
 	
 	private makeInclude = (theInclude: any) => {
@@ -99,7 +134,6 @@ export class AsmSymbolProvider implements vscode.TreeDataProvider<AsmSymbolInfo>
 						arguments: [{file:theInclude.file, ln:1, loc:this.workspaceRoot}]
 					});
 	};
-	
 
 	/**
 	 * Given the path to asm-symbols.json, read all its "constants", "labels".
@@ -147,9 +181,12 @@ export class AsmSymbolProvider implements vscode.TreeDataProvider<AsmSymbolInfo>
 				}
 
 				case "macros": {
-					return asmSymbolJson.macros
-						? asmSymbolJson.macros.sort((a:any,b:any) => (a.name > b.name) ? 1 : ((b.name > a.name) ? -1 : 0)).map( (macro: any) => this.makeMacro(macro))
-						: [];
+					if (!asmSymbolJson.macros || (asmSymbolJson.macros && asmSymbolJson.macros.length === 0)) {
+						return [
+							new AsmSymbolInfo("macros", "None", "defined in the source code", vscode.TreeItemCollapsibleState.None)
+						];
+					}
+					return asmSymbolJson.macros.sort((a:any,b:any) => (a.name > b.name) ? 1 : ((b.name > a.name) ? -1 : 0)).map( (macro: any) => this.makeMacro(macro));
 				}
 
 				case "includes": {

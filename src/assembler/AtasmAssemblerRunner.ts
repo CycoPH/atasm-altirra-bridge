@@ -102,6 +102,7 @@ export class AtasmAssemblerRunner extends AssemblerRunnerBase {
 		// Output
 		args.push(`-o${this.OutputFileName}`);
 
+		// The file to assemble
 		args.push(`"${this.InputFileName}"`);
 
 		return args;
@@ -152,6 +153,22 @@ export class AtasmAssemblerRunner extends AssemblerRunnerBase {
 		if (this.BuildConfig?.withDebug) {
 			args.push(`-l${this.OutputSymbolsFileName}`);
 			args.push(`-g${this.OutputListFileName}`);
+		}
+
+		// Should ATasm export the symbols/outline?
+		if (this.Configuration && this.Configuration.get<boolean>("assembler.atasm.outline.ExportForSymbolExplorer", false) === true) {
+			var parts = "clm";
+			// Check if some parts (constants/labels/macros) need to be excluded
+			if (this.Configuration.get<boolean>("assembler.atasm.outline.noEquates", true) === true) {
+				parts = parts.replace("c", "");
+			}
+			if (this.Configuration.get<boolean>("assembler.atasm.outline.noLabels", false) === true) {
+				parts = parts.replace("l", "");
+			}
+			if (this.Configuration.get<boolean>("assembler.atasm.outline.noMacros", true) === true) {
+				parts = parts.replace("m", "");
+			}
+			args.push(`-hv${parts}`);
 		}
 
 		args.push(`"${this.InputFileName}"`);

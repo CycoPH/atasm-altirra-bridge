@@ -20,13 +20,10 @@ export abstract class AssemblerRunnerBase implements vscode.Disposable {
 	public OutputBreakpoints: string = "";				// The file that set breakpoints will be written to
 	public OutputDebugCmds: string = "";				// Altirra debug commands to set breakpoints
 	
-
 	public IsRunning: boolean = false;
 	protected Configuration: vscode.WorkspaceConfiguration | undefined;
 	public BuildConfig: application.AtasmConfigurationDefinition | undefined = undefined;
 	public WorkspaceFolder: string = "";
-
-
 
 	constructor(id: string) {
 		this.Id = id;

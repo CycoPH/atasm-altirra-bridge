@@ -16,6 +16,7 @@ export class EmulatorRunner implements vscode.Disposable {
 	public Args: string = "";
 	public Region: string = "";
 	public Debugger: boolean = false;
+	public SingleInstance: boolean = false;
 	public AutoCloseEmulator: boolean = false;
 	protected FileName: string = "";
 	private UseAltirra: boolean = true;
@@ -75,12 +76,15 @@ export class EmulatorRunner implements vscode.Disposable {
 			args.push("/debug");
 			args.push("/debugcmd:.loadsym");
 		}
+		if (this.SingleInstance) {
+			args.push("/singleinstance");
+		}
 
 		// Command
 		let command = `"${this.FullPathToEmulator}"`;
 		let exec = path.parse(this.FullPathToEmulator).base;
 
-		if (this.AutoCloseEmulator) {
+		if (this.AutoCloseEmulator && this.SingleInstance === false) {
 			await execute.KillProcessByNameAsync(exec, this.FullPathToEmulator);
 		}
 
@@ -126,7 +130,7 @@ export class EmulatorRunner implements vscode.Disposable {
 		if (!command || command?.length === 0) {return false;}
 
 		// Process
-		application.CompilerOutputChannel.appendLine(`Launching emulator...`);
+		application.CompilerOutputChannel.appendLine(`Launching own emulator...`);
 		application.CompilerOutputChannel.appendLine(command);
 		application.CompilerOutputChannel.appendLine(args.join(" "));
 
@@ -162,6 +166,7 @@ export class EmulatorRunner implements vscode.Disposable {
 		this.Args = "";
 		this.Region = "";
 		this.Debugger = false;
+		this.SingleInstance = false;
 		this.UseAltirra = true;
 
 		// Emulator
@@ -192,6 +197,8 @@ export class EmulatorRunner implements vscode.Disposable {
 
 		this.AutoCloseEmulator = this.Configuration.get<boolean>("emulator.altirra.autoCloseRunningAltirra", true);
 
+		this.SingleInstance = this.Configuration.get<boolean>("emulator.altirra.singleInstance", false);
+
 		let userRegion = this.Configuration!.get<string>("emulator.altirra.region", "");
 		if (userRegion) {
 			// Confirm from list
@@ -216,6 +223,7 @@ export class EmulatorRunner implements vscode.Disposable {
 		this.Args = "";
 		this.Region = "";
 		this.Debugger = false;
+		this.SingleInstance = false;
 		this.UseAltirra = false;
 
 		// Emulator

@@ -6,7 +6,7 @@ Write in VSCode and use the status bar icons or keyboard shortcuts to assemble, 
 ## Features
 This extension includes the following features:
 * 6502 assembler syntax highlighting
-* Cross-platform macro assembler (ATasm)
+* Cross-platform macro assembler (ATasm).
 * Run your code in the Altirra emulator (or setup another one)
 * Source level debugging with breakpoints
 * Constant/Label/Macro explorer to quickly navigate to parts of your code
@@ -18,7 +18,7 @@ This extension includes the following features:
 ## Symbol Explorer
 Use the ![Symbol Explorer](images/explorericon.png) icon to switch to the `Asm Symbol Explorer`.
 
-This tool shows data exported by the `ATasm` assembler. Use the `-hv` switch in the `params` section to generate the data.
+This tool shows data exported by the `ATasm` assembler. Use the `-hv` switch in the `params` section to generate the data, or use the `Export For Symbol Explorer` setting.
 
 ```
 atasm-build.json
@@ -26,19 +26,23 @@ atasm-build.json
 	"params": "-hv",
 ```
 
+or use the settings as shown in this image.
+
+![Symbol Explorer Settings](images/explorer-settings.png)
+
 The demo file below will produce the data shown in the image below:
 ```
 	* = $2000
-TEST_ME = 456
-boot
+TEST_ME = 88 		; Setup test variable
+BOOT				; We will boot from here
 	LDA #1
 	STA TheEnd
-loop JMP loop
-TheEnd .byte 0
+loop JMP loop		; Wait for ever
+TheEnd .byte 0		; The END indicator
 ```
 ![Symbol Explorer](images/explorer.png)
 
-The first item shows that the `TEST_ME` constant has a value of 456 (in hex $01c8). Clicking on the `TEST_ME` symbol will take you to the line where the symbol is defined in the source file.
+The first item shows that the `TEST_ME` constant has a value of 88 (in hex $58) and what the comment for the definition is. Clicking on the `TEST_ME` symbol will take you to the line where the symbol is defined in the source file.
 
 The second section show labels sorted by address/memory location:
 `ORIGINAL_GRAPHICS` was set to 0 on the command line, in this case in the `_5`/`symbols` section of the `atasm-build.json` file.
@@ -49,8 +53,7 @@ atasm-build.json
 	],
 ```
 
-The `BOOT`, `LOOP` and `THEEND` symbols where defined in the assembler source code. The location in memory together with the origin in the source file is shown. In this case `LOOP` is at address $2005.
-
+The `BOOT`, `LOOP` and `THEEND` symbols where defined in the assembler source code. The location in memory together with source comment is shown. If you hover the cursor over the symbol the origin in the source file is shown. In this case `LOOP` is at address $2005 and it's source comment is `Wait for ever`.
 
 ## Build tasks and shortcuts for building you assembler projects
 The extension registers build tasks for 6502 assembly files which invoke `ATasm` on the file
@@ -168,15 +171,21 @@ loop
 
 The [Altirra](http://www.virtualdub.org/altirra.html) emulator needs to be installed to run and debug your code.
 
+Should you want to use `Mads` as your assembler then you will need to setup the path to it.
+
 ## Extension Settings
 
-There are various settings that control aspects of this extension.  To access them open the settings (Ctrl+,) and select `Atasm Altirra Bridge` from the extensions
+There are various settings that control aspects of this extension.  To access them open the settings (Ctrl+,) and select `Atasm Altirra Bridge` from the extensions.
 
 This extension contributes the following settings:
 
 * `atasm-altirra-bridge.assembler.whichAssembler`: `ATasm` or `Mads`. Select which assembler is being used by the plugin. Defaults to `ATasm`
 * `atasm-altirra-bridge.assembler.atasmPath`: If you wish to use your own version of ATasm (and not the one shipped with the extension) then set the path to it here
 * `atasm-altirra-bridge.assembler.madsPath`: If you wish to use `Mads` as your assembler then set the path to it here and switch the `Which Assembler` setting to `Mads`
+* `atasm-altirra-bridge.assembler.atasm.outline.ExportForSymbolExplorer`: Whether to tell ATasm to export symbols (equates, labels, macros) for the `Symbols Explorer`. Sets the -hvclm flag and generates the `asm-symbols.json` file.
+* `atasm-altirra-bridge.assembler.atasm.outline.noEquates`: Tell ATasm NOT to export equates (abc = 123) for the `Symbols Explorer`. Clears 'c' from the -hvclm flag.
+* `atasm-altirra-bridge.assembler.atasm.outline.noLabels`: Tell ATasm NOT to export labels (ABC jmp ABC) for the `Symbols Explorer`. Clears 'l' from the -hvclm flag.
+* `atasm-altirra-bridge.assembler.atasm.outline.noMacros`: Tell ATasm NOT to export macro definitions (.macro NAME) for the `Symbols Explorer`. Clears 'm' from the -hvclm flag.
 * `atasm-altirra-bridge.editor.clearPreviousOutput`: Whether to clear the previous output window everytime the assembler is triggered.
 * `atasm-altirra-bridge.editor.saveAllFilesBeforeBuild`: Whether to save all files before build is triggered.
 * `atasm-altirra-bridge.editor.saveFileBeforeBuild`: Whether to save the active file before build is triggered.
@@ -185,6 +194,7 @@ This extension contributes the following settings:
 * `atasm-altirra-bridge.emulator.altirra.path`: Specify the full path to the Altirra emulator.
 * `atasm-altirra-bridge.emulator.altirra.args`: Specify (optional) Altirra command line arguments.
 * `atasm-altirra-bridge.emulator.altirra.autoCloseRunningAltirra`: Automatically close any existing Altirra instances before opening a new one.
+* `atasm-altirra-bridge.emulator.altirra.singleInstance`: Only run a single instance of the emulator.
 * `atasm-altirra-bridge.emulator.altirra.region`: Run Altirra in PAL or NTSC region
 * `atasm-altirra-bridge.emulator.ownEmulator`: Whether to run Altirra or another emulator (own)
 * `atasm-altirra-bridge.emulator.own.args`: All arguments passed to the own emulator. The extension does not add any.
@@ -193,6 +203,14 @@ This extension contributes the following settings:
 ## Known Issues
 
 ## Release Notes
+
+### 1.7.0
+- Atasm version bump to 1.18
+- Atasm can now export comments on the same line where equates (a=123), labels (abc) and macros (.macro) are defined
+  - Use	the `-hv` command line option to export the comments with the symbols
+  - Or use the Export For Symbol Explorer setting (with its three exclusion options)
+  - The extension tracks changes to the 'asm-symbols.json' file and updates the symbol explorer accordingly.
+- You can now configure the extension to only run a single instance of the Altirra emulator
 
 ### 1.6.0
 - Atasm version bump to 1.17

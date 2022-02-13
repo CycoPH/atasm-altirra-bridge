@@ -13,6 +13,8 @@ import { MadsAssemblerRunner } from './assembler/MadsAssemblerRunner';
 
 import { EmulatorRunner } from './emulators/EmulatorRunner';
 
+import { AsmSymbolProvider } from './explorer/asmSymbols';
+
 
 // -------------------------------------------------------------------------------------
 // Operating System
@@ -40,6 +42,7 @@ export const PreferencesSettingsExtensionPath: string = `${(IsMacOS ? "Code" : "
 export const ChangeLogUri: vscode.Uri = vscode.Uri.parse(`https://marketplace.visualstudio.com/items/${Id}/changelog`);
 
 export const AtasmBuildFilename: string = "atasm-build.json";
+export const SymbolExplorerFilename: string = "asm-symbols.json";
 
 // -------------------------------------------------------------------------------------
 // Channels
@@ -56,6 +59,8 @@ export const RunAssembler: AssemblerRunnerBase[] = [
 
 export const Emulator: EmulatorRunner = new EmulatorRunner();
 export var WorkspaceFolder: string = "";
+
+export var SymbolExplorer: AsmSymbolProvider;
 
 // -------------------------------------------------------------------------------------
 // Configuration
@@ -84,6 +89,28 @@ export async function EnsureBuildConfigIsLoaded(): Promise<boolean> {
 		return true;
 	}
 	return await LoadBuildConfigAsync();
+}
+
+export function SetupSymbolExplorer() {
+	// Setup the constant/label/etc symbol explorer window and callbacks
+	const rootPath = (vscode.workspace.workspaceFolders && (vscode.workspace.workspaceFolders.length > 0)) ? vscode.workspace.workspaceFolders[0].uri.fsPath : undefined;
+	const asmSymbolsProvider = new AsmSymbolProvider(rootPath);
+	SymbolExplorer = asmSymbolsProvider;
+
+	vscode.window.registerTreeDataProvider('asmSymbolExplorer', asmSymbolsProvider);
+	vscode.commands.registerCommand('asmSymbolExplorer.refreshEntry', () => asmSymbolsProvider.refresh());
+	vscode.commands.registerCommand('extension.openSourceAtLine', async info => {
+		// Goto the file and line number
+		const uri = vscode.Uri.joinPath(vscode.Uri.file(info.loc), info.file);
+
+		vscode.workspace.openTextDocument(uri).then(doc => {
+			vscode.window.showTextDocument(doc, { preview: false }).then(editor => {
+				const line: number = parseInt(info.ln, 10)-1;
+				editor.selection = new vscode.Selection(new vscode.Position(line, 0), new vscode.Position(line, 0));
+				editor.revealRange(new vscode.Range(line, 0, line, 0), vscode.TextEditorRevealType.Default);
+			});
+		});
+	});
 }
 
 /**
@@ -190,7 +217,7 @@ export async function SaveBreakpoints(): Promise<boolean> {
 	var lastSrcFile = "";
 	var fixedSrcFile = "";			// corrected \ to /
 
-	var atdbgLines = "";
+	var breakpointLines = "";
 
 	var atLines: number[] = [];
 	var numFiles = 0;
@@ -213,16 +240,18 @@ export async function SaveBreakpoints(): Promise<boolean> {
 					}
 					lastSrcFile = file.toLowerCase();
 					fixedSrcFile = lastSrcFile.replace(/\\/gi, '/');
-					breakLines += `Source: ${fixedSrcFile}` + os.EOL;
+					//breakLines += `Source: ${fixedSrcFile}` + os.EOL;
+					breakLines += `Source: ${point.location.uri.fsPath}` + os.EOL;
 					atLines = [];
 				}
 				++numBreakpoints;
 				atLines.push(point.location.range.start.line + 1);
 				if (point.condition) {
-					atdbgLines += `bx "${point.condition}"` + os.EOL;
+					breakpointLines += `bx "${point.condition}"` + os.EOL;
 				}
 				else {
-					atdbgLines += `bp -k -q \`${fixedSrcFile}:${point.location.range.start.line + 1}\`` + os.EOL;
+//					breakpointLines += `bp -k -q \`${fixedSrcFile}:${point.location.range.start.line + 1}\`` + os.EOL;
+					breakpointLines += `bp "\`${point.location.uri.fsPath}:${point.location.range.start.line + 1}\`"` + os.EOL;
 				}
 			}
 		}
@@ -239,8 +268,17 @@ export async function SaveBreakpoints(): Promise<boolean> {
 
 		// Write the .atdbg debugger script to disk
 		// 1. Prepend some commands
-		atdbgLines = "bc *" + os.EOL + atdbgLines + `.echo ${numBreakpoints} breakpoints from ${numFiles} files have been set}` + os.EOL;
-		atdbgLines += ".sourcemode on" + os.EOL;
+		var atdbgLines = ".sourcemode on" + os.EOL;
+		atdbgLines += ".echo" + os.EOL;
+		atdbgLines += '.echo "Loading executable..."' + os.EOL;
+		atdbgLines += ".echo" + os.EOL;
+		atdbgLines += "bc *" + os.EOL;
+		atdbgLines += '.onexerun .echo "Launching executable..."' + os.EOL;
+		atdbgLines += breakpointLines;
+		atdbgLines += `.echo ${numBreakpoints} breakpoints from ${numFiles} files have been set` + os.EOL;
+
+		//console.log(`Writing debug commands to file ${(vscode.Uri.file(SelectAssembler().OutputDebugCmds))}`);
+		//console.log(atdbgLines);
 
 		writeData = Buffer.from(atdbgLines, 'utf8');
 		await vscode.workspace.fs.writeFile(vscode.Uri.file(SelectAssembler().OutputDebugCmds), writeData);

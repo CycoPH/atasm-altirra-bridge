@@ -13,6 +13,7 @@ import * as util from 'util';
 
 let taskProvider: vscode.Disposable | undefined;
 let atasmConfigWatcher: vscode.FileSystemWatcher | undefined;
+let symbolExplorerConfigWatcher: vscode.FileSystemWatcher | undefined;
 
 // this method is called when your extension is activated
 // your extension is activated the very first time the command is executed
@@ -56,11 +57,18 @@ export async function activate(context: vscode.ExtensionContext) {
 
 		vscode.window.onDidChangeActiveTextEditor(() => application.ClearBuildConfig());
 
+		// Setup checking the atasm-build.json file
 		atasmConfigWatcher = vscode.workspace.createFileSystemWatcher(path.join(folder.uri.fsPath, application.AtasmBuildFilename));
 		atasmConfigWatcher.onDidChange(() => application.ClearBuildConfig());
 		atasmConfigWatcher.onDidCreate(() => application.ClearBuildConfig());
 		atasmConfigWatcher.onDidDelete(() => application.ClearBuildConfig());
 
+		// Setup checking the asm-symbols.json file
+		symbolExplorerConfigWatcher = vscode.workspace.createFileSystemWatcher(path.join(folder.uri.fsPath, application.SymbolExplorerFilename));
+		symbolExplorerConfigWatcher.onDidChange(() => application.SymbolExplorer.refresh());
+		symbolExplorerConfigWatcher.onDidCreate(() => application.SymbolExplorer.refresh());
+		symbolExplorerConfigWatcher.onDidDelete(() => application.SymbolExplorer.refresh());
+		
 		taskProvider = vscode.tasks.registerTaskProvider('atasm', {
 			provideTasks: () => {
 				buildConfigPromise = getAssemblerTasks();
@@ -92,22 +100,7 @@ export async function activate(context: vscode.ExtensionContext) {
 	await application.SelectAssembler().FixExecPermissions();
 
 	// Setup the constant/label/etc symbol explorer window and callbacks
-	const rootPath = (vscode.workspace.workspaceFolders && (vscode.workspace.workspaceFolders.length > 0)) ? vscode.workspace.workspaceFolders[0].uri.fsPath : undefined;
-	const asmSymbolsProvider = new AsmSymbolProvider(rootPath);
-	vscode.window.registerTreeDataProvider('asmSymbolExplorer', asmSymbolsProvider);
-	vscode.commands.registerCommand('asmSymbolExplorer.refreshEntry', () => asmSymbolsProvider.refresh());
-	vscode.commands.registerCommand('extension.openSourceAtLine', async info => {
-		// Goto the file and line number
-		const uri = vscode.Uri.joinPath(vscode.Uri.file(info.loc), info.file);
-
-		vscode.workspace.openTextDocument(uri).then(doc => {
-            vscode.window.showTextDocument(doc, { preview: false }).then(editor => {
-                const line: number = parseInt(info.ln, 10)-1;
-				editor.selection = new vscode.Selection(new vscode.Position(line, 0), new vscode.Position(line, 0));
-				editor.revealRange(new vscode.Range(line, 0, line, 0), vscode.TextEditorRevealType.Default);
-            });
-        });
-	});
+	application.SetupSymbolExplorer();
 }
 
 // this method is called when your extension is deactivated
@@ -169,5 +162,4 @@ async function getAssemblerTasks(): Promise<vscode.Task[]> {
 	}
 
 	return tasks;
-
 }

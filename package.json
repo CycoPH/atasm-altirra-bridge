@@ -2,8 +2,8 @@
 	"name": "atasm-altirra-bridge",
 	"displayName": "Atasm Altirra Bridge",
 	"shortName": "Atasm",
-	"description": "Build and debug your 6502 assembler projects with Atasm and Altirra",
-	"version": "1.6.0",
+	"description": "Build and debug your 6502 assembler projects with Atasm/Mads and Altirra",
+	"version": "1.7.0",
 	"icon": "images/icon.png",
 	"author": "Peter Hinz",
 	"publisher": "cerebus",
@@ -92,6 +92,30 @@
 					"description": "Don't wish to use atasm? Specify the full path (including filename) of mads:",
 					"scope": "machine"
 				},
+				"atasm-altirra-bridge.assembler.atasm.outline.ExportForSymbolExplorer": {
+					"type": "boolean",
+					"default": true,
+					"description": "Whether to tell ATasm to export symbols (equates, labels, macros) for the `Symbols Explorer`.\nSets the -hvclm flag and generates the `asm-symbols.json` file.",
+					"scope": "machine"
+				},
+				"atasm-altirra-bridge.assembler.atasm.outline.noEquates": {
+					"type": "boolean",
+					"default": true,
+					"description": "Tell ATasm NOT to export equates (abc = 123) for the `Symbols Explorer`.\nClears 'c' from the -hvclm flag.",
+					"scope": "machine"
+				},
+				"atasm-altirra-bridge.assembler.atasm.outline.noLabels": {
+					"type": "boolean",
+					"default": false,
+					"description": "Tell ATasm NOT to export labels (ABC jmp ABC) for the `Symbols Explorer`.\nClears 'l' from the -hvclm flag.",
+					"scope": "machine"
+				},
+				"atasm-altirra-bridge.assembler.atasm.outline.noMacros": {
+					"type": "boolean",
+					"default": true,
+					"description": "Tell ATasm NOT to export macro definitions (.macro NAME) for the `Symbols Explorer`.\nClears 'm' from the -hvclm flag.",
+					"scope": "machine"
+				},
 				"atasm-altirra-bridge.editor.clearPreviousOutput": {
 					"type": "boolean",
 					"default": true,
@@ -160,6 +184,12 @@
 					"type": "boolean",
 					"default": true,
 					"description": "Automatically close any existing Altirra instances before opening a new one",
+					"scope": "resource"
+				},
+				"atasm-altirra-bridge.emulator.altirra.singleInstance": {
+					"type": "boolean",
+					"default": false,
+					"description": "Only run a single instance of the Altirra emulator",
 					"scope": "resource"
 				},
 				"atasm-altirra-bridge.emulator.altirra.path": {

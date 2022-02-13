@@ -2,6 +2,14 @@
 
 All notable changes to the "atasm-altirra-bridge" extension will be documented in this file.
 
+## [1.7.0]
+- Atasm version bump to 1.18
+- Atasm can now export comments on the same line where equates (a=123), labels (abc) and macros (.macro) are defined
+  - Use	the `-hv` command line option to export the comments with the symbols
+  - Or use the Export For Symbol Explorer setting (with its three exclusion options)
+  - The extension tracks changes to the 'asm-symbols.json' file and updates the symbol explorer accordingly.
+- You can now configure the extension to only run a single instance of the Altirra emulator
+
 ## [1.6.0]
 - Atasm version bump to 1.17
 - Atasm can now dump constant, label and macro definition information
