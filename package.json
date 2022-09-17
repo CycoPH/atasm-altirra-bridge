@@ -78,43 +78,43 @@
 					],
 					"default": "ATasm",
 					"description": "Specify which assembler to use.",
-					"scope": "machine"
+					"scope": "resource"
 				},
 				"atasm-altirra-bridge.assembler.atasmPath": {
 					"type": "string",
 					"default": "",
 					"description": "Don't wish to use the included version of atasm? Specify the full path (including filename) of your atasm installation:",
-					"scope": "machine"
+					"scope": "resource"
 				},
 				"atasm-altirra-bridge.assembler.madsPath": {
 					"type": "string",
 					"default": "",
 					"description": "Don't wish to use atasm? Specify the full path (including filename) of mads:",
-					"scope": "machine"
+					"scope": "resource"
 				},
 				"atasm-altirra-bridge.assembler.atasm.outline.ExportForSymbolExplorer": {
 					"type": "boolean",
 					"default": true,
 					"description": "Whether to tell ATasm to export symbols (equates, labels, macros) for the `Symbols Explorer`.\nSets the -hvclm flag and generates the `asm-symbols.json` file.",
-					"scope": "machine"
+					"scope": "resource"
 				},
 				"atasm-altirra-bridge.assembler.atasm.outline.noEquates": {
 					"type": "boolean",
 					"default": true,
 					"description": "Tell ATasm NOT to export equates (abc = 123) for the `Symbols Explorer`.\nClears 'c' from the -hvclm flag.",
-					"scope": "machine"
+					"scope": "resource"
 				},
 				"atasm-altirra-bridge.assembler.atasm.outline.noLabels": {
 					"type": "boolean",
 					"default": false,
 					"description": "Tell ATasm NOT to export labels (ABC jmp ABC) for the `Symbols Explorer`.\nClears 'l' from the -hvclm flag.",
-					"scope": "machine"
+					"scope": "resource"
 				},
 				"atasm-altirra-bridge.assembler.atasm.outline.noMacros": {
 					"type": "boolean",
 					"default": true,
 					"description": "Tell ATasm NOT to export macro definitions (.macro NAME) for the `Symbols Explorer`.\nClears 'm' from the -hvclm flag.",
-					"scope": "machine"
+					"scope": "resource"
 				},
 				"atasm-altirra-bridge.editor.clearPreviousOutput": {
 					"type": "boolean",
