@@ -3,9 +3,9 @@
 	"name": "6502 Assembly (atasm)",
 	"scopeName": "source.atasm",
 	"fileTypes": [
-		"asm",
-		"m65",
-		"inc"
+		".asm",
+		".m65",
+		".inc"
 	],
 	"patterns": [
 		{
@@ -36,6 +36,15 @@
 	"repository": {
 		"comments": {
 			"patterns": [
+				{
+					"begin": "/\\*",
+					"end": "\\*/",
+					"name": "comment.block"
+				},
+				{
+					"match": "//.*",
+					"name": "comment.line.double-slash"
+				},
 				{
 					"match": ";.*",
 					"name": "comment.line.semicolon"
@@ -85,7 +94,7 @@
 					"name": "keyword.control.error"
 				},
 				{
-					"match": "(?i)(\\.(align|if|else|endif|include|incbin|warn|opt|local|set|bank))\\b",
+					"match": "(?i)(\\.(align|if|elseif|else|endif|include|incbin|warn|opt|local|set|bank))\\b",
 					"name": "keyword.control.controlcommand"
 				}
 			]

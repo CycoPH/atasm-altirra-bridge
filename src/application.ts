@@ -47,7 +47,7 @@ export const SymbolExplorerFilename: string = "asm-symbols.json";
 // -------------------------------------------------------------------------------------
 // Channels
 // -------------------------------------------------------------------------------------
-export const CompilerOutputChannel: vscode.OutputChannel = vscode.window.createOutputChannel("Compiler");
+export const CompilerOutputChannel: vscode.OutputChannel = vscode.window.createOutputChannel("Atasm Build");
 
 // -------------------------------------------------------------------------------------
 // Objects
@@ -250,7 +250,7 @@ export async function SaveBreakpoints(): Promise<boolean> {
 					breakpointLines += `bx "${point.condition}"` + os.EOL;
 				}
 				else {
-//					breakpointLines += `bp -k -q \`${fixedSrcFile}:${point.location.range.start.line + 1}\`` + os.EOL;
+					// breakpointLines += `bp -k -q \`${fixedSrcFile}:${point.location.range.start.line + 1}\`` + os.EOL;
 					breakpointLines += `bp "\`${point.location.uri.fsPath}:${point.location.range.start.line + 1}\`"` + os.EOL;
 				}
 			}

@@ -1,0 +1,25 @@
+canvas {
+	background: none;
+	border: none;
+}
+
+.memoryForegroundColor { color: var(--vscode-editorHoverWidget-foreground)}
+.memoryBackgroundColor { color: var(--vscode-editorHoverWidget-background)}
+.memoryBorderColor { color: var(--vscode-editorHoverWidget-border)}
+.memoryRollBackgroundColor { color: var(--vscode-editorHoverWidget-statusBarBackground)}
+
+.programForegroundColor { color: var(--vscode-list-activeSelectionForeground)}
+.programBackgroundColor { color: var(--vscode-list-activeSelectionBackground)}
+.programBorderColor { color: var(--vscode-list-focusOutline)}
+.programRollBackgroundColor { color: var(--vscode-list-dropBackground)}
+.virtualBackgroundColor { color: var(--vscode-list-filterMatchBackground)}
+
+.bankZeroBackgroundColor { color: var(--vscode-input-background)}
+.bankZeroBorderColor { color: var(--vscode-input-foreground)}
+
+.romForegroundColor {color: var(--vscode-panel-foreground)}
+.romBackgroundColor {color: var(--vscode-panel-background)}
+
+.tooltipForegroundColor {color: var(--vscode-button-secondaryForeground)}
+.tooltipBackgroundColor {color: var(--vscode-button-secondaryBackground)}
+.tooltipBorderColor {color: var(--vscode-button-secondaryForeground)}

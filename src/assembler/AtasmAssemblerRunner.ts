@@ -7,6 +7,7 @@ import * as filesystem from '../filesystem';
 import * as execute from '../execute';
 
 import { AssemblerRunnerBase } from './AssemblerRunnerBase';
+import { forwardBuildData } from '../extension';
 
 export class AtasmAssemblerRunner extends AssemblerRunnerBase {
 
@@ -200,6 +201,9 @@ export class AtasmAssemblerRunner extends AssemblerRunnerBase {
 
 				// Result
 				application.CompilerOutputChannel.append('' + stdout);
+
+				// Send the result to the view window for parsing
+				forwardBuildData(stdout);
 				return result;
 			},
 			(stderr: string) => {
@@ -217,8 +221,12 @@ export class AtasmAssemblerRunner extends AssemblerRunnerBase {
 
 				// Result
 				application.CompilerOutputChannel.append('' + stderr);
+
+				// Send the result to the view window for parsing
+				forwardBuildData(stderr);
 				return result;
-			});
+			}
+		);
 		this.IsRunning = false;
 
 		// Finalize

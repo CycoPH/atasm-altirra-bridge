@@ -6,6 +6,7 @@ import { WelcomePage } from './pages/welcome';
 import './statusbar';
 
 import { AsmSymbolProvider } from './explorer/asmSymbols';
+import { MemoryViewProvider } from './views/MemoryViewProvider';
 
 import * as path from 'path';
 import * as fs from 'fs';
@@ -14,6 +15,8 @@ import * as util from 'util';
 let taskProvider: vscode.Disposable | undefined;
 let atasmConfigWatcher: vscode.FileSystemWatcher | undefined;
 let symbolExplorerConfigWatcher: vscode.FileSystemWatcher | undefined;
+var lastChangedDate: Date = new Date();
+let memoryViewProvider: MemoryViewProvider | undefined;
 
 // this method is called when your extension is activated
 // your extension is activated the very first time the command is executed
@@ -87,11 +90,19 @@ export async function activate(context: vscode.ExtensionContext) {
 	context.subscriptions.push(buildAndDebug);
 	context.subscriptions.push(resetBuild);
 
+	context.subscriptions.push(vscode.workspace.onDidChangeConfiguration(configChanged));
+
 	// Register intellisense features
 	//await application.RegisterDocumentSymbolProvidersAsync(context);
 	//await application.RegisterDefinitionProvidersAsync(context);
 	//await application.RegisterReferenceProvidersAsync(context);
 	//await application.RegisterCompletionProvidersAsync(context);
+
+	// Create the view to show the memory layout of the code that was assembled
+	memoryViewProvider = new MemoryViewProvider(context.extensionUri);
+	memoryViewProvider.extContext = context;
+	memoryViewProvider.extOutput = application.CompilerOutputChannel;
+	context.subscriptions.push(vscode.window.registerWebviewViewProvider(MemoryViewProvider.viewType, 	memoryViewProvider));
 
 	// Show welcome messages
 	await application.ShowStartupMessagesAsync();
@@ -105,6 +116,14 @@ export async function activate(context: vscode.ExtensionContext) {
 
 // this method is called when your extension is deactivated
 export function deactivate() { }
+
+export function forwardBuildData(data:string)
+{
+	if (memoryViewProvider)
+	{
+		memoryViewProvider.setBuildDataCache("build", data);
+	}
+}
 
 interface AssemblerTaskDefinition extends vscode.TaskDefinition {
 	task: string;
@@ -162,4 +181,12 @@ async function getAssemblerTasks(): Promise<vscode.Task[]> {
 	}
 
 	return tasks;
+}
+
+function configChanged(e:vscode.ConfigurationChangeEvent) {
+	let affected = e.affectsConfiguration("atasm");
+
+	if (memoryViewProvider) {
+		memoryViewProvider.viewInit();	
+	}
 }

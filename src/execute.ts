@@ -105,7 +105,7 @@ export function Spawn(command: string, args: string[] | null, env: { [key: strin
 
 		// Error?
 		ca.on('error', (err: any) => {
-			//console.log(`- error '${err}'`);
+			// console.log(`- error '${err}'`);
 			return resolve(false);
 		});
 
@@ -118,7 +118,7 @@ export function Spawn(command: string, args: string[] | null, env: { [key: strin
 			// Exit code?
 			if (result !== 0) { stdout(`Exit code: ${result}`); }
 
-			// Finalise and exit
+			// Finalize and exit
 			return resolve(result === 0);
 		});
 

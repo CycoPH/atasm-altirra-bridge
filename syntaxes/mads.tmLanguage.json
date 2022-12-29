@@ -1,0 +1,287 @@
+{
+	"fileTypes": [
+	  "asm",
+	  "mac",
+	  "hea"
+	],
+	"name": "6502/65816 Assembly (MADS)",
+	"patterns": [
+	  {
+		"include": "#comments"
+	  },
+	  {
+		"include": "#constants"
+	  },
+	  {
+		"include": "#control"
+	  },
+	  {
+		"include": "#6502"
+	  },
+	  {
+		"include": "#65816"
+	  },
+	  {
+		"include": "#macros"
+	  },
+	  {
+		"include": "#quotes"
+	  },
+	  {
+		"include": "#storage"
+	  },
+	  {
+		"include": "#external"
+	  },
+	  {
+		"include": "#misc"
+	  },
+	  {
+		"include": "#operators"
+	  },
+	  {
+		"include": "#labels"
+	  }
+	],
+	"repository": {
+	  "6502": {
+		"patterns": [
+		  {
+			"match": "(?i)(\\s+|(?<=:))(adc|and|asl|bcc|bcs|beq|bit|bmi|bne|bpl|brk|bvc|bvs|clc|cld|cli|clv|cmp|cpx|cpy|dec|dex|dey|eor|inc|inx|iny|jmp|jsr|lda|ldx|ldy|lsr|nop|ora|pha|php|pla|plp|rol|ror|rti|rts|sbc|sec|sed|sei|sta|stx|sty|tax|tay|tsx|txa|txs|tya)(?=\\.[bzwaqlt]|\\s+|[:$#(\\\\])",
+			"name": "keyword.other.opcode.6502.legal"
+		  },
+		  {
+			"match": "(?i)(\\s+|(?<=:))(aso|rln|lse|rrd|sax|lax|dcp|isb|anc|alr|arr|ane|anx|sbx|las|sha|shs|shx|shy|npo|cim|dop|top)(?=\\s+|[:$#(])",
+			"name": "keyword.other.opcode.6502.illegal"
+		  }
+		]
+	  },
+	  "65816": {
+		"patterns": [
+		  {
+			"match": "(?i)(\\s+|(?<=:))(stz|sep|rep|trb|tsb|bra|cop|mvn|mvp|pea|phb|phd|phk|phx|phy|plb|pld|plx|ply|rtl|stp|tcd|tcs|tdc|tsc|txy|tyx|wai|wdm|xba|xce|ina|dea|brl|jsl|jml)(?=\\.[bzwaqlt]|\\s+|[:$#(\\\\])",
+			"name": "keyword.other.opcode.65816.legal"
+		  }
+		]
+	  },
+	  "control": {
+		"patterns": [
+		  {
+			"match": "(?i)((^|\\s+)\\.error|\\s+ert)\\b",
+			"name": "keyword.control.error"
+		  },
+		  {
+			"match": "(?i)((^|\\s+)(\\.en)|^(\\s+|\\S+\\s+)(end))\\b",
+			"captures": {
+			  "3": {
+				"name": "keyword.control.end"
+			  },
+			  "5": {
+				"name": "keyword.control.end"
+			  }
+			}
+		  },
+		  {
+			"match": "(?i)((^|\\s+)(\\.(if|ifdef|ifndef)|#(if|while))|\\s+ift|^\\s+(eli|els|eif)|^\\s*(\\.(else|elseif|endif)|#(else|end)))\\b",
+			"name": "keyword.control.if"
+		  }
+		]
+	  },
+	  "macros": {
+		"patterns": [
+		  {
+			"match": "(?i)(\\s+|(?<=:))(req|rne|rpl|rmi|rcc|rcs|rvc|rvs|seq|sne|spl|smi|scc|scs|svc|svs|jeq|jne|jpl|jmi|jcc|jcs|jvc|jvs|add|sub|adb|sbb|adw|sbw|phr|plr|inw|inl|ind|dew|del|ded|mva|mvx|mvy|mwa|mwx|mwy|cpb|cpw|cpl|cpd)(?=\\s+|[:$#(])",
+			"name": "keyword.other.opcode.macro"
+		  },
+		  {
+			"match": "(?i)(^|\\s+)\\.(define|undef|macro|endm|mend|rept|endr|proc|endp|pend)\\b",
+			"name": "entity.other.attribute-name.macro"
+		  },
+		  {
+			"match": "(?i)(^|\\s+)\\.(exitm|exit)\\b",
+			"name": "keyword.control.end"
+		  }
+		]
+	  },
+	  "comments": {
+		"patterns": [
+		  {
+			"begin": "/\\*",
+			"end": "\\*/",
+			"name": "comment.block"
+		  },
+		  {
+			"match": "//.*",
+			"name": "comment.line.double-slash"
+		  },
+		  {
+			"match": ";.*",
+			"name": "comment.line.semicolon"
+		  },
+		  {
+			"match": "^\\S*\\s*(\\*.*)",
+			"captures": {
+			  "1": {
+				"name": "comment.line.asterisk"
+			  }
+			}
+		  }
+		]
+	  },
+	  "quotes": {
+		"patterns": [
+		  {
+			"begin": "'",
+			"end": "'",
+			"name": "string.quoted.single"
+		  },
+		  {
+			"begin": "\"",
+			"end": "\"",
+			"name": "string.quoted.double"
+		  }
+		]
+	  },
+	  "constants": {
+		"patterns": [
+		  {
+			"match": "(?i)(?<=,)\\s*[xy]\\b(?!.*\\.reg)",
+			"name": "constant.language.registers"
+		  },
+		  {
+			"match": "\\b[0-9]+\\b",
+			"name": "constant.numeric.decimal"
+		  },
+		  {
+			"match": "(?i)\\$\\b\\h+\\b|\\b0x\\h+\\b",
+			"name": "constant.numeric.hexadecimal"
+		  },
+		  {
+			"match": "%\\b[0-1]+\\b",
+			"name": "constant.numeric.binary"
+		  }
+		]
+	  },
+	  "storage": {
+		"patterns": [
+		  {
+			"match": "(?i)\\s+dta|((^|\\s+|(?<=\\())\\.(d?byte|d?word|long)|(^|\\s+)\\.((zp)?var|reg|db|dw|by|ds|sb|cb|wo|he|fl))\\b",
+			"name": "storage.type"
+		  },
+		  {
+			"match": "(?i)(^|\\s+)\\.(struct|ends|send|end|enum|ende|eend|array|enda|aend)\\b",
+			"name": "entity.other.attribute-name.struct"
+		  },
+		  {
+			"match": "(?i)(^|\\s+)\\.align\\b",
+			"name": "storage.modifier"
+		  }
+		]
+	  },
+	  "labels": {
+		"patterns": [
+		  {
+			"match": "(?i)(\\bset|\\.(adr|len|sizeof|filesize|def))\\b",
+			"name": "keyword.other.label.functions"
+		  },
+		  {
+			"match": "(?i)(^|\\s+)\\.(local|endl|lend)\\b",
+			"name": "entity.other.attribute-name.local"
+		  },
+		  {
+			"match": "(?i)^\\s*\\.(using|use)\\b",
+			"name": "keyword.other.label.scope"
+		  },
+		  {
+			"match": "[\\w@][\\w@?]*\\.[\\w@][\\w@?]*",
+			"name": "entity.name.other.label.scope"
+		  },
+		  {
+			"match": "^@(?=\\s+)",
+			"name": "entity.name.other.label.anonymous"
+		  },
+		  {
+			"match": "[\\w@][\\w@?]*:?",
+			"name": "entity.name.other.label.local"
+		  },
+		  {
+			"match": "\\s+(?<=:)[\\w@][\\w@?]*",
+			"name": "entity.name.other.label.global"
+		  },
+		  {
+			"match": "\\?[\\w@?]*",
+			"name": "entity.name.other.label.temporary"
+		  }
+		]
+	  },
+	  "misc": {
+		"patterns": [
+		  {
+			"match": "(?i)\\s+opt\\b",
+			"name": "keyword.other.options"
+		  },
+		  {
+			"match": "(?i)\\s+org\\b",
+			"name": "keyword.other.mem.new"
+		  },
+		  {
+			"match": "(?i)^\\s*\\.segdef\\b",
+			"name": "keyword.other.mem.seg"
+		  },
+		  {
+			"match": "(?i)^\\s*\\.(pages|endpg|pgend|segment|endseg)\\b",
+			"name": "entity.other.attribute-name.mem.seg"
+		  },
+		  {
+			"match": "(?i)(\\s+(ins|icl)|(^|\\s+)\\.([wldx]?get|put|sav|link))\\b",
+			"name": "keyword.other.ram.load"
+		  },
+		  {
+			"match": "(?i)(sin|rnd)(?=\\()\\b",
+			"name": "keyword.other.functions"
+		  },
+		  {
+			"match": "(?i)(^\\s*\\.(print|echo)|(^|\\s+)\\.nowarn)\\b",
+			"name": "keyword.other.debug"
+		  },
+		  {
+			"match": "(?i)\\s+[lnr]mb\\b",
+			"name": "keyword.other.ram.bank"
+		  }
+		]
+	  },
+	  "external": {
+		"patterns": [
+		  {
+			"match": "(?i)(\\s+(blk|smb|run|ini)|(^\\s*)\\.symbol)\\b",
+			"name": "keyword.other.dos"
+		  },
+		  {
+			"match": "(?i)(^\\s*)\\.reloc\\b",
+			"name": "keyword.other.reloc"
+		  },
+		  {
+			"match": "(?i)((^\\S+\\s+(ext))|(^|\\s+)(\\.(extrn|public|global|globl)))\\b",
+			"captures": {
+			  "3": {
+				"name": "keyword.other.symbols"
+			  },
+			  "5": {
+				"name": "keyword.other.symbols"
+			  }
+			}
+		  }
+		]
+	  },
+	  "operators": {
+		"patterns": [
+		  {
+			"match": "(?i)[+\\-*/!|^=~\\:&<>]|%%?|equ|\\.(and|x?or|not|(lo|hi)(?=\\s*\\())",
+			"name": "keyword.operators"
+		  }
+		]
+	  }
+	},
+	"scopeName": "source.asm.6502_65816.mads",
+	"uuid": "8D1E7063-570E-4E88-AF2E-EA3CE330B2D3"
+  }

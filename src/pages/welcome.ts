@@ -99,13 +99,13 @@ export class WelcomePage implements vscode.Disposable {
 						return;
 
 					default:
-						{
-							let url = commandMapping.get(message.command);
-							if (url) {
-								this.openUrl(url);
-								return;
-							}
+					{
+						let url = commandMapping.get(message.command);
+						if (url) {
+							this.openUrl(url);
+							return;
 						}
+					}
 				}
 
 				// Unknown

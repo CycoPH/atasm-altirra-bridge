@@ -63,10 +63,10 @@ export class AsmSymbolProvider implements vscode.TreeDataProvider<AsmSymbolInfo>
 		}
 
 		return new AsmSymbolInfo("constants", one.name, `= ${addrStr}`, vscode.TreeItemCollapsibleState.None, tip, {
-						command: 'extension.openSourceAtLine',
-						title: '',
-						arguments: [{file:one.file, ln:one.ln, loc:this.workspaceRoot}]
-					});
+			command: 'extension.openSourceAtLine',
+			title: '',
+			arguments: [{file:one.file, ln:one.ln, loc:this.workspaceRoot}]
+		});
 	};
 
 	private makeLabel = (label: any) => {
@@ -129,10 +129,10 @@ export class AsmSymbolProvider implements vscode.TreeDataProvider<AsmSymbolInfo>
 		// This is an include file
 		//	.file = Where is the source code
 		return new AsmSymbolInfo("includes", theInclude.file, undefined, vscode.TreeItemCollapsibleState.None, undefined, {
-						command: 'extension.openSourceAtLine',
-						title: '',
-						arguments: [{file:theInclude.file, ln:1, loc:this.workspaceRoot}]
-					});
+			command: 'extension.openSourceAtLine',
+			title: '',
+			arguments: [{file:theInclude.file, ln:1, loc:this.workspaceRoot}]
+		});
 	};
 
 	/**
