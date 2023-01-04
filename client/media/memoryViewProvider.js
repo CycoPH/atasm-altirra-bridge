@@ -337,8 +337,9 @@ function parseMemory(data) {
 		var match = patt.exec(lines[i]);
 
 		if (!match) {
-			if (rangeList.length > 1) break;
-			else continue;
+			//if (rangeList.length > 1) break;
+			//else 
+				continue;
 		}
 
 		var _virtual = false;

@@ -2,6 +2,13 @@
 
 All notable changes to the "atasm-altirra-bridge" extension will be documented in this file.
 
+## 1.8.0
+- Atasm version bump to 1.20
+- Atasm now exports a "Memory Map" which the extension parses and shows as an "Atasm Assembler memory viewer"
+  - Gives a nice layout of the used memory
+  - To name memory sections you can use a string behind the *=\<addr> directive like: *=$200 "Booting from here"
+  - or use the .NAME "Music" directive to tell Atasm that this is a section with Music in it
+
 ## [1.7.0]
 - Atasm version bump to 1.18
 - Atasm can now export comments on the same line where equates (a=123), labels (abc) and macros (.macro) are defined

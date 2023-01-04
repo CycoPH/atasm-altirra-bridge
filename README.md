@@ -203,6 +203,12 @@ This extension contributes the following settings:
 ## Known Issues
 
 ## Release Notes
+### 1.8.0
+- Atasm version bump to 1.20
+- Atasm now exports a "Memory Map" which the extension parses and shows as an "Atasm Assembler memory viewer"
+  - Gives a nice layout of the used memory
+  - To name memory sections you can use a string behind the *=\<addr> directive like: *=$200 "Booting from here"
+  - or use the .NAME "Music" directive to tell Atasm that this is a section with Music in it
 
 ### 1.7.0
 - Atasm version bump to 1.18
@@ -243,4 +249,3 @@ This extension contributes the following settings:
 - Added configuration options to allow for another emulator to be used
   - Set the ownEmulator setting and supply the path and arguments
   - The extension will not add any parameters. You will need to supply them in the correct format.
-

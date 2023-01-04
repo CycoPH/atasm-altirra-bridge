@@ -125,7 +125,7 @@ export class MemoryViewProvider implements vscode.WebviewViewProvider {
 		return `<!DOCTYPE html>
 			<html lang="en">
 			<head>
-				<title>Kick Assembler Memory Viewer</title>
+				<title>Atasm Assembler Memory Viewer</title>
 				<meta charset="UTF-8">
 
 				<!--

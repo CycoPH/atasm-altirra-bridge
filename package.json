@@ -3,7 +3,7 @@
 	"displayName": "Atasm Altirra Bridge",
 	"shortName": "Atasm",
 	"description": "Build and debug your 6502 assembler projects with Atasm/Mads and Altirra",
-	"version": "1.8.1",
+	"version": "1.8.2",
 	"icon": "images/icon.png",
 	"author": "Peter Hinz",
 	"publisher": "cerebus",
