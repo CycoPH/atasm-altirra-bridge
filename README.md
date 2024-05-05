@@ -251,6 +251,10 @@ This extension contributes the following settings:
 
 ## Release Notes
 
+### 1.9.1
+- Atasm with .INIT and .RUN directives
+- When running the emulator the first two parameters are: /run xex
+- 
 ### 1.9.0
 - Atasm version bump to 1.25
 - The use of the atasm-build.json file is now optional.
