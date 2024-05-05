@@ -115,6 +115,13 @@ export function SetupSymbolExplorer() {
 
 /**
  * Load the build configuration json file
+ * + V1.9.0 - The build file is now optional (depending on the 'atasm-altirra-bridge.application.configuration.forceUseOfBuildConfigFile' configuration option)
+ * If the build file is not found and not forced to be there create some default settings.
+ * These are the possible options:
+ * - look for the build config.
+ * - if it is there use it.
+ * - if it is missing, check if it needs to be created
+ * - if it is missing and not forced to be there then use a basic default config
  * @param retrying True if we are redoing the load
  * @returns true if its all loaded, false if the file is not there or needs configuration
  */
@@ -130,26 +137,53 @@ export async function LoadBuildConfigAsync(retrying: boolean = false): Promise<b
 
 		WorkspaceFolder = folder;
 
+		// 1. Try and read the config file
+		let readFileData:string = '{"outputFolder": "out","withDebug": true}';
+
+		let configuration = GetConfiguration();
+		let forceConfigFile = configuration.get<boolean>(`application.configuration.forceUseOfBuildConfigFile`);
+
+		if (forceConfigFile) {
+
+			// Want to use the build config json file.
+			// Make sure its there and valid
+			try {
+				const readFile = util.promisify(fs.readFile);
+				readFileData = await readFile(path.join(folder || "", AtasmBuildFilename), "utf-8");
+			}
+			catch (err) {
+				// There was a problem loading the atasm-build.json file.
+				buildConfig = undefined;
+
+				// Create the default config file
+				if (!await CreateAtasmBuildJsonAsync()) {
+
+					vscode.window.showInformationMessage('Failed to created the default build configuration file!');
+					return false;
+				}
+				// And try to reload it
+				if (!retrying) {
+					return await LoadBuildConfigAsync(true);
+				}
+				return false;
+			}
+		}
+
+		// 2. Try and parse the config file
 		try {
-			const readFile = util.promisify(fs.readFile);
-			const readFileData = await readFile(path.join(folder || "", AtasmBuildFilename), "utf-8");
 			buildConfig = JSON.parse(readFileData);
 			return true;
 		}
 		catch (err) {
-			// There was a problem loading the atasm-build.json file.
 			buildConfig = undefined;
-			if (await CreateAtasmBuildJsonAsync()) {
-				return false;
-			}
-			if (!retrying) {
-				return await LoadBuildConfigAsync(true);
-			}
+			// There was a problem parsing the config file.
+			vscode.window.showInformationMessage('Unable to parse the config file. JSON syntax error!');
 			return false;
 		}
 	}
 	else {
 		buildConfig = undefined;
+		vscode.window.showInformationMessage('Unable to open the folder for building.');
 		return false;
 	}
 }
@@ -323,7 +357,7 @@ export async function CreateAtasmBuildJsonAsync(): Promise<boolean> {
 				"_3", "Which folder will all the output files be written to. 'out' by default. Always in the workspace!",
 				"outputFolder", "out",
 				"\n",
-				"_4", "Additional atasm parameters:-v -s -u -r -fvalue",
+				"_4", "Additional Atasm parameters:-v -s -u -r -fvalue",
 				"params", "",
 				"\n",
 				"_5", "List of symbols to be set via the parameter list",
@@ -402,7 +436,7 @@ export async function ShowStartupMessagesAsync(): Promise<void> {
 	let configuration = GetConfiguration();
 
 	// Load settings
-	let showNewVersionMessage = configuration.get<string>(`application.configuration.showNewVersionMessage`);
+	let showNewVersionMessage = configuration.get<boolean>(`application.configuration.showNewVersionMessage`);
 	let latestVersion = configuration.get<string>(`application.configuration.latestVersion`);
 
 	// Process?

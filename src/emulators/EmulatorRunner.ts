@@ -68,8 +68,8 @@ export class EmulatorRunner implements vscode.Disposable {
 
 		// Args
 		let args = [
-			this.Region,
 			`/run "${this.FileName}"`,
+			this.Region,
 			this.Args
 		];
 		if (this.Debugger) {

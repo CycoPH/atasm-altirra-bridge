@@ -91,6 +91,74 @@ export abstract class AssemblerRunnerBase implements vscode.Disposable {
 		return "";
 	}
 
+	public Extensions:string[] = [
+		".asm",
+		".a",
+		".s",
+		".m65"
+	];
+	protected async GetDefaultOrFirstAsmFilename(hardDefault: string): Promise<string> {
+		if (!this.Configuration) {
+			// There is no configuration, so not much to check
+			return "theapp.asm";
+		}
+
+		// 1. Get the configured default filename
+		let defaultBuildFilename = this.Configuration.get<string>("application.configuration.defaultAsmFileToAssemble", "").trim();
+
+		if (defaultBuildFilename && defaultBuildFilename.length > 0) {
+			// Got a default filename.
+			return defaultBuildFilename;
+		}
+
+		// Got no default file.
+		// 2. Check if the current open file is an assembler file
+		let doCurrentEditorFile = this.Configuration.get<boolean>("application.configuration.assembleCurrentAsmFile", true);
+		if (doCurrentEditorFile && vscode.window.activeTextEditor) {
+			let currentEditorFileExt = path.extname(vscode.window.activeTextEditor.document.uri.path).toLocaleLowerCase();
+			if (this.Extensions.find(ex => ex === currentEditorFileExt)) {
+				// The current editor file is an assembler file
+				return path.basename(vscode.window.activeTextEditor.document.uri.path);
+			}
+		}
+		// 3. Find the first assembler file in the folder
+		if (vscode.workspace.workspaceFolders && vscode.workspace.workspaceFolders.length > 0) {
+			const rootPath = vscode.workspace.workspaceFolders[0].uri;
+
+			var potential = [];
+			for (const [name, type] of await vscode.workspace.fs.readDirectory(rootPath)) {
+				if (type === vscode.FileType.File) {
+					// Only look at files
+					let extension = path.extname(name).toLocaleLowerCase();
+					if (this.Extensions.find(ex => ex === extension)) {
+						// Yes have an assembler file
+						let uriPath = vscode.Uri.file(path.join(rootPath.path, name));
+						const stat = await vscode.workspace.fs.stat(uriPath);
+						potential.push({fn: name, tm: stat.mtime});
+					}
+				}
+			}
+			// If there is only one entry. Easy take it
+			if (potential.length === 1) {
+				return potential[0].fn;
+			}
+			// Sort based on filename or last modified date
+			let sortBy = this.Configuration.get<string>("application.configuration.findFirstFileBy", "Filename").trim();
+
+			let comparer = sortBy === "Filename" ? ((a:any,b:any) => {
+				if (a.fn < b.fn) {return -1};
+				if (a.fn > b.fn) {return 1};
+				return 0;
+			} ): ((a:any,b:any) => b.tm - a.tm);
+
+			potential.sort(comparer);
+
+			// Take the first entry
+			return potential[0].fn;
+		}
+		return "code.asm";
+	}
+
 	// ------------------------------------------------------------------------
 	// Code that needs to be overridden by the specific assembler runner
 	protected abstract InitOriginalPath(): void;

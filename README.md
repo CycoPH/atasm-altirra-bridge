@@ -15,6 +15,44 @@ This extension includes the following features:
 ## Syntax Highlighting
 ![Syntax Highlighting](images/syntax.png)
 
+## How do I start?
+By default the extension will create a build configuration file (`atasm-build.json`). You can edit that file to set which is your primary assembler file or supply parameters to be used when executing the assembler.
+
+So for an easy start.  Just create an assembler file named `theapp.asm`, add some code, and press F5 to assemble. That should build and run your code.
+If there was no build configuration file, one will be created, and you can retry the assembly by pressing F5 again.
+
+By default the file to assemble is called `theapp.asm`. Don't like it? Change it in the input field to whatever you prefer.
+
+Sometimes you just don't want to pollute your folder with the build config file.  In that case there are various options available to you.
+- Turn OFF the `Force Use Of Build Config File` setting.
+   Ctrl+, to get to the settings.
+   Type `atasm` into the search bar.
+   Look through the options and turn off the setting.
+   Now the assembler will not force a build config file on you various other options are now available.
+- If the `Default Asm File To Assemble` setting is set then this will be the file that will be assembled.
+- If there is no default asm file set then the current open assembler file will be assembled.
+  Unless you've turned OFF the `Assemble Current Asm File` option
+- If you do not use the build config file, have not set the default assembler file, have turned off the assembling of the current file in the editor then the first assembler file is the current folder is assembled.
+  What comes first.  Well the sort order can be switched between alphabetical and last modified.
+
+Those are quite a few options and should cover most use cases!
+
+For a project use a build configuration!
+
+For some simple testing turn off the build configuration and do not set a default assembler filename.
+This will assemble the currently open file or use the first alphabetical or last modified file.
+
+### What makes a file an assembler file?
+If the file extension is one of these:
+- .asm
+- .a
+- .s
+- .m65
+
+### Special case
+If you want to use some special command line switches but still use the file select options from have then turn ON the `Force Use Of Build Config File` option AND clear the `input` JSON setting.
+When the `input` is empty the above search rules also get applied. The good thing here is that the command lines switches from the build config are used.
+
 ## Symbol Explorer
 Use the ![Symbol Explorer](images/explorericon.png) icon to switch to the `Asm Symbol Explorer`.
 
@@ -85,7 +123,7 @@ or the command pallette (Ctrl+Shift+P then type atasm)
 to create the file.
 
 Pressing the gear icon will create and open the configuration file.
-- `input` - the first file in your project.  This will `.include` all others. `theapp.asm` by default.  Change this to the name of your game or application.
+- `input` - the first file in your project.  This will `.include` all others. `theapp.asm` by default.  Change this to the name of your game or application, or leave it blank to assemble the first .asm file found in the folder.
 - `includes` - a list of folders that will be searched for files when they are included.
 - `outputFolder` - the location relative to your workspace where the assembler output will be written to.  This is `out` by default.
 - `params` - The extra ATasm parameters you want to specify. i.e. -v for verbose output
@@ -176,6 +214,7 @@ Should you want to use `Mads` as your assembler then you will need to setup the 
 ## Extension Settings
 
 There are various settings that control aspects of this extension.  To access them open the settings (Ctrl+,) and select `Atasm Altirra Bridge` from the extensions.
+Or simply type 'atasm' into the search bar and all settings will be shown.
 
 This extension contributes the following settings:
 
@@ -199,10 +238,29 @@ This extension contributes the following settings:
 * `atasm-altirra-bridge.emulator.ownEmulator`: Whether to run Altirra or another emulator (own)
 * `atasm-altirra-bridge.emulator.own.args`: All arguments passed to the own emulator. The extension does not add any.
 * `atasm-altirra-bridge.emulator.own.path`: Full path to your own emulator.
+* `atasm-altirra-bridge.application.configuration.showNewVersionMessage`: Show welcome message after installing a new release of Atasm Altirra Bridge.
+* `atasm-altirra-bridge.application.configuration.forceUseOfBuildConfigFile`: Use the `atasm-build.json` build configuration file for this project? If ON then the build config file is required. If one does not exist, a default will be created. If OFF then the first assembler file in the project folder is assembled with the default DEBUG command line switches.
+* `atasm-altirra-bridge.application.configuration.defaultAsmFileToAssemble`: Set the default .asm file to build. i.e `theapp.asm`. Leave blank to assemble the first assembler file found in the folder, depending on the sort order.
+* `atasm-altirra-bridge.application.configuration.assembleCurrentAsmFile`: When set then the currently open assembler file will be assembled. Only applies if no build config is used and no default asm file is set.
+* `atasm-altirra-bridge.application.configuration.findFirstFileBy`: This applies when there is no build config file, there is no default assembler file, and the current file is not an assembler file. Then find the first assembler file in the folder by which sort order? Filename A-Z or Last modified date.
+* `atasm-altirra-bridge.viewer.memory.size`: The memory map viewer breaks the display into smaller blocks. This sets the block size: 128 bytes to 4KB
+* `atasm-altirra-bridge.viewer.memory.roms`: Show Rom Segments Next To Program Segments
+
 
 ## Known Issues
 
 ## Release Notes
+
+### 1.9.0
+- Atasm version bump to 1.25
+- The use of the atasm-build.json file is now optional.
+  - You can disable the `Force Use Of Build Config File` options to disable the option.
+  - When disabled the file to assemble is selected by one of these
+	* The entry in `Default Asm File To Assemble`. Can be blank then the next options apply
+	* Looks if the current editor file is an assembler file [Has extension .asm, .a, .s, .m65, .inc]
+	* Looks at the alphabetical first assembler file
+	* Or the last modified assembler file
+
 ### 1.8.0
 - Atasm version bump to 1.20
 - Atasm now exports a "Memory Map" which the extension parses and shows as an "Atasm Assembler memory viewer"

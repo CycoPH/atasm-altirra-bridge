@@ -25,7 +25,7 @@ export class AtasmAssemblerRunner extends AssemblerRunnerBase {
 	// ----------------------------------------------------------------------------------
 	
 	/**
-	 * Build assembler command line from atasm-build.json configuration
+	 * Build assembler command line from atasm-build.json or default configuration
 	 * @returns array of command line arguments. [0] is the assembler [1..] are the parameters
 	 */
 	protected async GetAssemblerCommandLineFromBuildInfo(): Promise<string[]> {
@@ -38,7 +38,7 @@ export class AtasmAssemblerRunner extends AssemblerRunnerBase {
 
 		// Get the filename where the compiling starts.
 		// If its undefined or blank then use the default
-		this.InputFileName = (this.BuildConfig.input && this.BuildConfig.input.trim().length > 0)  ? this.BuildConfig.input : "theapp.asm";
+		this.InputFileName = (this.BuildConfig.input && this.BuildConfig.input.trim().length > 0)  ? this.BuildConfig.input : await this.GetDefaultOrFirstAsmFilename("theapp.asm");
 		this.InputFileNameBase = path.parse(this.InputFileName).name;
 
 		// Set where the assembler output goes or default to "out"
@@ -85,7 +85,7 @@ export class AtasmAssemblerRunner extends AssemblerRunnerBase {
 	 * @returns array of command line arguments. [0] is the assembler [1..] are the parameters
 	 */
 	protected async GetAssemblerCommandLineDirectly(thisAsmFile: string): Promise<string[]> {
-		this.InputFileName = thisAsmFile.length > 0 ? thisAsmFile : "theapp.asm";
+		this.InputFileName = thisAsmFile.length > 0 ? thisAsmFile : await this.GetDefaultOrFirstAsmFilename("theapp.asm");
 		this.InputFileNameBase = path.parse(this.InputFileName).name;
 
 		this.OutputFolder = path.join("", "out");
@@ -361,7 +361,7 @@ export class AtasmAssemblerRunner extends AssemblerRunnerBase {
 
 		// Get the filename where the compiling starts.
 		// If its undefined or blank then use the default
-		this.InputFileName = (this.BuildConfig.input && this.BuildConfig.input.trim().length > 0)  ? this.BuildConfig.input : "theapp.asm";
+		this.InputFileName = (this.BuildConfig.input && this.BuildConfig.input.trim().length > 0)  ? this.BuildConfig.input : await this.GetDefaultOrFirstAsmFilename("theapp.asm");
 		this.InputFileNameBase = path.parse(this.InputFileName).name;
 
 		// Set where the assembler output goes or default to "out"

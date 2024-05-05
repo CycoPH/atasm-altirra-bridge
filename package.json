@@ -3,7 +3,7 @@
 	"displayName": "Atasm Altirra Bridge",
 	"shortName": "Atasm",
 	"description": "Build and debug your 6502 assembler projects with Atasm/Mads and Altirra",
-	"version": "1.8.2",
+	"version": "1.9.1",
 	"icon": "images/icon.png",
 	"author": "Peter Hinz",
 	"publisher": "cerebus",
@@ -230,6 +230,38 @@
 					"type": "boolean",
 					"default": true,
 					"description": "Show welcome message after installing a new release of Atasm Altirra Bridge.",
+					"scope": "resource"
+				},
+				"atasm-altirra-bridge.application.configuration.defaultAsmFileToAssemble": {
+					"type": "string",
+					"default": "",
+					"description": "Set the default .asm file to build. i.e theapp.asm\nLeave blank to assemble the first assembler file found in the folder.",
+					"scope": "resource"
+				},
+				"atasm-altirra-bridge.application.configuration.forceUseOfBuildConfigFile": {
+					"type": "boolean",
+					"default": true,
+					"description": "Use the 'atasm-build.json' build configuration file for this project?\nIf ON then the build config file is required. If one does not exist, a default will be created.\nIf OFF then the first assembler file in the project folder is assembled with the default DEBUG command line switches.",
+					"scope": "resource"
+				},
+				"atasm-altirra-bridge.application.configuration.assembleCurrentAsmFile": {
+					"type": "boolean",
+					"default": true,
+					"description": "If the file in the current editor window is an assembler file then assemble it.",
+					"scope": "resource"
+				},
+				"atasm-altirra-bridge.application.configuration.findFirstFileBy": {
+					"type": "string",
+					"enum": [
+						"Filename",
+						"Last Modified"
+					],
+					"enumDescriptions": [
+						"Alphabetical sort order A-Z",
+						"Modified date, last one comes first"
+					],
+					"default": "Filename",
+					"description": "This applies when there is no build config file, there is no default assembler file, and the current editor file is not an assembler file.\nThen find the first assembler file in the folder by which sort order?",
 					"scope": "resource"
 				},
 				"atasm-altirra-bridge.viewer.memory.size": {
