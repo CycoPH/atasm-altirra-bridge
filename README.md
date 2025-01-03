@@ -1,13 +1,13 @@
 # ATasm Altirra Bridge - write 6502 code, assemble, run and debug all in one
 This extension lets you code your Atari 8 bit assembler projects using a modern tool chain.
 
-Write in VSCode and use the status bar icons or keyboard shortcuts to assemble, run and debug your project. Set breakpoints and debug with ease. Use the symbol explorer to quickly navigate to parts of your code (currently only available with ATasm)
+Write in VSCode and use the status bar icons or keyboard shortcuts to assemble, run and debug your project. Set breakpoints and debug with ease.  With the forked version of [ATasm](https://github.com/CycoPH/atasm), you can use the Symbol Explorer to quickly navigate to parts of your code.
 
 ## Features
 This extension includes the following features:
 * 6502 assembler syntax highlighting
-* Cross-platform macro assembler (ATasm).
-* Run your code in the Altirra emulator (or setup another one)
+* A forked version of the cross-platform macro assembler (ATasm), with native binaries for 32-bit Windows, and x86_64 Linux and macOS platforms
+* Build your code and then call the `Altirra` emulator to run it, or set up a completely different emulator
 * Source level debugging with breakpoints
 * Constant/Label/Macro explorer to quickly navigate to parts of your code
 * Optional settings to use mads (https://mads.atari8.info/mads_eng.html) as your assembler
@@ -56,7 +56,7 @@ When the `input` is empty the above search rules also get applied. The good thin
 ## Symbol Explorer
 Use the ![Symbol Explorer](images/explorericon.png) icon to switch to the `Asm Symbol Explorer`.
 
-This tool shows data exported by the `ATasm` assembler. Use the `-hv` switch in the `params` section to generate the data, or use the `Export For Symbol Explorer` setting.
+This tool shows data exported by the [forked version](https://github.com/CycoPH/atasm) of the `ATasm` assembler.  Use the `-hv` switch in the `params` section to generate the data, or use the `Export For Symbol Explorer` setting.
 
 ```
 atasm-build.json
@@ -128,7 +128,7 @@ Pressing the gear icon will create and open the configuration file.
 - `outputFolder` - the location relative to your workspace where the assembler output will be written to.  This is `out` by default.
 - `params` - The extra ATasm parameters you want to specify. i.e. -v for verbose output
 - `symbols` - An array of predefined symbol definitions. i.e ["VERSION=1","TEST=0"]
-- `withDebug` - Boolean value of `true` will create a symbol and listing file that will help with Altirra debugging.
+- `withDebug` - Boolean value of `true` will create a symbol and listing file that will help with `Altirra` debugging.
 
 ### Build
 The VSCode status bar allows for quick access to the `Build` (Shift + F5), `Build and Run` (F5), and `Build and Debug` (Ctrl + F5) commands.
@@ -138,21 +138,21 @@ The build ![Build](images/build.png) button will run ATasm with the configured p
 ![Output](images/output.png)
 
 ### Build and Run
-The first time the build and run ![Run](images/run.png) button is pressed the extension will verify if `Altirra` (or another emulator) has been setup and its location on the machine configured. It its not configured then the following screen will be shown. Enter the location of your Altirra emulator location including the executable filename. i.e. D:\Altirra\3.90\Altirra64.exe or /usr/bin/altirra/wine-altirra
+The first time the build and run ![Run](images/run.png) button is pressed the extension will verify if `Altirra` (or another emulator) has been setup and its location on the machine configured. It its not configured then the following screen will be shown. Enter the location of your `Altirra` emulator location including the executable filename. i.e. `D:\Altirra\3.90\Altirra64.exe` or `/usr/bin/altirra/wine-altirra`
 
 ![Altirra](images/altirra.png)
 
-Once a reference to Altirra has been added you can run your project code directly from VSCode.
+Once a reference to `Altirra` has been added, you can run your project code directly from VSCode.
 
-If your system does not allow you to run Altirra or you want to use another emulator you can confiure the path and command line for it.
+If your system does not allow you to run `Altirra` or you want to use another emulator you can confiure the path and command line for it.
 ![Own](images/own.png)
 
 You need to supply all the arguments in the correct format, the extension would not know how to format the arguments. .i.e. Would an arguement start the --, -, or /.
 
 ### Build and Debug
-The real power of the extension comes in the form of the Altirra debugger. Pressing the build and debug ![Debug](images/debug.png) button will not only create the binary file, but also a file containing the `symbol` definitions and a `list` file. The list file maps every line number of the project to a memory location. This allows us to do source level debugging and to set break points in the assembler code and have Altirra hit them when the program is executed.
+The real power of the extension comes in the form of the `Altirra` debugger.  Pressing the build and debug ![Debug](images/debug.png) button will not only create the binary file, but also a file containing the `symbol` definitions and a `list` file. The list file maps every line number of the project to a memory location. This allows us to do source level debugging and to set break points in the assembler code and have `Altirra` hit them when the program is executed.
 
-Here is what source level debugging with a hit breakpoint looks like in Altirra
+Here is what source level debugging with a hit breakpoint looks like in `Altirra`
 
 ![Colors](images/colors.png)
 
@@ -161,12 +161,12 @@ Here is what source level debugging with a hit breakpoint looks like in Altirra
 ### ATasm and Altirra
 A version of the [ATasm](https://github.com/CycoPH/atasm) macro assembler ships with this extension. The Linux x64 and Windows x64 binaries are included.
 
-Altirra can be downloaded from [here](http://www.virtualdub.org/altirra.html). A description on how to configure it can be found in the [Retro Coding Blog](https://retro.cerebus.co.za/blog/asm/chapter1/).
+`Altirra` can be downloaded from [here](http://www.virtualdub.org/altirra.html). A description on how to configure it can be found in the [Retro Coding Blog](https://retro.cerebus.co.za/blog/asm/chapter1/).
 
 ### Mads as an alternative assembler
 If you prefer using the every popular MAD-ASSEMBLER (mads) (https://mads.atari8.info/mads_eng.html) then you can setup a the path to it, switch the plugin settings to `Mads` and do nearly all the things you can do with `ATasm`.  The switch is located under `Which Assembler` in the settings.
 
-The only plugin feature not available to `Mads` users is the `Symbol explorer`
+The only plugin feature not available to `Mads` users is the `Symbol Explorer`
 
 ### Updating the extension
 Updates are regularly provided and you will be notified via VS Code when one has been made available. Once an update has been installed you will generally be prompted to restart VS Code.
@@ -230,12 +230,12 @@ This extension contributes the following settings:
 * `atasm-altirra-bridge.editor.saveFileBeforeBuild`: Whether to save the active file before build is triggered.
 * `atasm-altirra-bridge.editor.showAssemblerOutput`: Whether to show the assembler messages in the output window.
 * `atasm-altirra-bridge.editor.statusBarCommands`: Show information and feature short-cuts on the Status Bar.
-* `atasm-altirra-bridge.emulator.altirra.path`: Specify the full path to the Altirra emulator.
-* `atasm-altirra-bridge.emulator.altirra.args`: Specify (optional) Altirra command line arguments.
+* `atasm-altirra-bridge.emulator.altirra.path`: Specify the full path to the `Altirra` emulator.
+* `atasm-altirra-bridge.emulator.altirra.args`: Specify (optional) `Altirra` command line arguments.
 * `atasm-altirra-bridge.emulator.altirra.autoCloseRunningAltirra`: Automatically close any existing Altirra instances before opening a new one.
 * `atasm-altirra-bridge.emulator.altirra.singleInstance`: Only run a single instance of the emulator.
-* `atasm-altirra-bridge.emulator.altirra.region`: Run Altirra in PAL or NTSC region
-* `atasm-altirra-bridge.emulator.ownEmulator`: Whether to run Altirra or another emulator (own)
+* `atasm-altirra-bridge.emulator.altirra.region`: Run `Altirra` in PAL or NTSC region
+* `atasm-altirra-bridge.emulator.ownEmulator`: Whether to run `Altirra` or another emulator (own)
 * `atasm-altirra-bridge.emulator.own.args`: All arguments passed to the own emulator. The extension does not add any.
 * `atasm-altirra-bridge.emulator.own.path`: Full path to your own emulator.
 * `atasm-altirra-bridge.application.configuration.showNewVersionMessage`: Show welcome message after installing a new release of Atasm Altirra Bridge.
@@ -254,7 +254,7 @@ This extension contributes the following settings:
 ### 1.9.1
 - Atasm with .INIT and .RUN directives
 - When running the emulator the first two parameters are: /run xex
-- 
+
 ### 1.9.0
 - Atasm version bump to 1.25
 - The use of the atasm-build.json file is now optional.
@@ -278,7 +278,7 @@ This extension contributes the following settings:
   - Use	the `-hv` command line option to export the comments with the symbols
   - Or use the Export For Symbol Explorer setting (with its three exclusion options)
   - The extension tracks changes to the 'asm-symbols.json' file and updates the symbol explorer accordingly.
-- You can now configure the extension to only run a single instance of the Altirra emulator
+- You can now configure the extension to only run a single instance of the `Altirra` emulator
 
 ### 1.6.0
 - Atasm version bump to 1.17
@@ -287,9 +287,7 @@ This extension contributes the following settings:
   - use -hv[clm] c=constant l=labels m=macros to select a subset of info to dump
   - `-hvc` only dumps the defined constants
   - `-hvl` only dumps information about labels
-- The 'asm-symbols.json' file in the root of the project can be viewed in vscode via
-  a new `Asm Symbol Explorer`. Clicking on any of the constants, labels, macros or included
-  files will take you to the source code instantly.
+- The 'asm-symbols.json' file in the root of the project can be viewed in vscode via a new `Asm Symbol Explorer`. Clicking on any of the constants, labels, macros or included files will take you to the source code instantly.
 
 ### 1.5.0
 - Atasm version bump to 1.13
